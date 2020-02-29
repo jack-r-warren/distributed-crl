@@ -1,0 +1,105 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.3.61' apply false
+    id 'com.google.protobuf' version '0.8.11' apply false
+    id 'com.github.johnrengelman.shadow' version '5.2.0' apply false
+}
+
+// For all projects, configure:
+allprojects {
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven { url 'https://dl.bintray.com/libly/maven' }
+    }
+}
+
+// For all subprojects (i.e. excluding the root project), configure:
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+
+    dependencies {
+        // Protobuf runtime
+        implementation "com.google.protobuf:protobuf-java:$protoc_version"
+    }
+}
+
+// For all application (i.e. executable) subprojects, configure:
+configure(subprojects.findAll {
+    ['client', 'intermediary', 'certificate-authority', 'discovery-server'].contains(it.name)
+}) {
+    apply plugin: 'application'
+    apply plugin: 'com.github.johnrengelman.shadow'
+
+    // Execution starts at the `fun main()` in Main.kt in the project's src/main/kotlin folder
+    mainClassName = 'MainKt'
+
+    dependencies {
+        implementation project(':shared')
+        // Command-line parsing for Kotlin
+        implementation 'com.github.ajalt:clikt:2.4.0'
+    }
+
+    // Special jar type that includes all necessary dependencies
+    shadowJar {
+        // File will be in <subproject>/build/libs/<subproject>.jar
+        archiveClassifier.set ''
+        archiveVersion.set ''
+    }
+}
+
+// For all Kotlin subprojects, configure:
+configure(subprojects.findAll {
+    ['shared', 'client', 'intermediary', 'certificate-authority', 'discovery-server'].contains(it.name)
+}) {
+    apply plugin: 'org.jetbrains.kotlin.jvm'
+
+    dependencies {
+        implementation project(':proto')
+        implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+        // Networking
+        implementation "io.ktor:ktor-server-core:$ktor_version"
+        implementation "io.ktor:ktor-network:$ktor_version"
+        // Binary and hashing tools
+        implementation 'commons-codec:commons-codec:1.14'
+        implementation 'com.google.guava:guava:28.2-jre'
+        // LibSodium (for usage see https://docs.lazycode.co/lazysodium/usage/getting-started)
+        implementation 'com.goterl.lazycode:lazysodium-java:4.2.5'
+        implementation 'net.java.dev.jna:jna:5.5.0'
+        implementation 'co.libly:resource-loader:1.3.6'
+        // Junit5
+        testImplementation 'org.junit.jupiter:junit-jupiter:5.6.0'
+    }
+
+    Closure<Void> kotlinCompilationOptions = {
+        kotlinOptions {
+            // Kotlin only cares about Java 6 vs 8, so this is the correct setting to target Java 13
+            jvmTarget = '1.8'
+            freeCompilerArgs += "-Xuse-experimental=" + [
+                    // Allows things like `6.seconds` without beta warnings
+                    "kotlin.time.ExperimentalTime",
+                    // Allows some socket APIs without beta warnings
+                    "io.ktor.util.KtorExperimentalAPI"
+            ].join(",")
+        }
+    }
+
+    compileKotlin(kotlinCompilationOptions)
+    compileTestKotlin(kotlinCompilationOptions)
+
+    test {
+        useJUnitPlatform()
+    }
+}
+
+// For 'proto' subproject, configure:
+project('proto') {
+    apply plugin: 'com.google.protobuf'
+
+    protobuf {
+        // Declare protoc version to look for (or download if needed)
+        protoc {
+            artifact = "com.google.protobuf:protoc:$protoc_version"
+        }
+    }
+}

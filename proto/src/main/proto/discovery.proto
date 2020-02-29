@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+message FromClientMessage {
+    oneof message_ {
+        Hello hello = 1;
+        Goodbye goodbye = 2;
+    }
+}
+
+message Hello {
+    uint32 port = 1;
+}
+
+message Goodbye {
+    uint32 port = 1;
+}
+
+message Response {
+    repeated Server servers = 1;
+}
+
+message Server {
+    string hostName = 1;
+    uint32 port = 2;
+}

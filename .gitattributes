@@ -1,0 +1,6 @@
+# Use Linux endings in general
+* text eol=lf
+# Use CRLF for .bat files to make everything work on Windows
+*.bat text eol=crlf
+# Enforce that the gradle-wrapper.jar is binary
+*.jar binary
