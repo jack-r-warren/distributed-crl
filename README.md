@@ -23,6 +23,7 @@ Within each of those folders, code is organized by language. For example:
 
 All subprojects have `java` enabled. The **proto** subproject is the only one to have the `proto` source type enabled (don't worry, you can use the generated code from anywhere). All subprojects *other than* **proto** have the `kotlin` source type enabled (this helps prevent circular dependencies).
 
+If you need to store something non-code, you can make `src/main/resources` or `src/test/resources`, it'll be properly ignored but made available.
 
 ### Applications
 Executable applications here include:
