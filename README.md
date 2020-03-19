@@ -10,6 +10,8 @@ Everything here generally assumes you have Java 13, though any Kotlin bytecode i
 Right now LibSodium is brought in as a dependency. You'll only need to have it installed if you try to run code that uses it (right now there's nothing that does).
 
 ## Project Layout
+There is a top-level `docs` folder that is for documentation.
+
 Subproject's folders won't show up on Git until they have something in them. The subproject folder names are in bold in the section below this.
 
 Each subproject contains a `src` folder that contains the project's code.
