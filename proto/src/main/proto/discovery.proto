@@ -19,7 +19,9 @@ message Response {
     repeated Server servers = 1;
 }
 
+// Field names are a little bit long just to disambiguate between this and
+// Java's InetSocketAddress class that uses hostName and port
 message Server {
-    string hostName = 1;
-    uint32 port = 2;
+    string ipAddress = 1;
+    uint32 portNumber = 2;
 }

@@ -78,12 +78,12 @@ object DiscoveryServer : CliktCommand(help = "Run a discovery server to facilita
   }
 
   /**
-   * Make a new Discovery.Server object for the given [hostName] and [port]
+   * Make a new Discovery.Server object for the given [ip] and [port]
    */
-  private fun makeServer(hostName: String, port: Int): Discovery.Server {
+  private fun makeServer(ip: String, port: Int): Discovery.Server {
     return Discovery.Server.newBuilder().apply {
-      this.hostName = hostName
-      this.port = port
+      this.ipAddress = ip
+      this.portNumber = port
     }.build()
   }
 
