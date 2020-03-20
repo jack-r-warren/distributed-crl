@@ -31,6 +31,7 @@ An Intermediary consists of the following:
 In addition, an Intermediary needs to perform the following:
 
 - Bootstrap to get a list of all other Intermediaries and the Blockchain
+    - Don't worry about other intermediaries, I've got that (Jack)
 - Respond to an Intermediary trying to bootstrap
 - Process an Intermediary being revoked
 - Receive a Revocation from its Certificate Authority

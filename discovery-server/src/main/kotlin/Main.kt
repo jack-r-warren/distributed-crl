@@ -62,11 +62,21 @@ object DiscoveryServer : CliktCommand(help = "Run a discovery server to facilita
                     addAllServers(serverSet)
                   }.build().writeDelimitedTo(output)
 
-                  serverSet.add(makeServer(remoteIP, message.hello.port))
+                  // All protobuf fields optional and will be null if omitted, I'm using this here to let clients
+                  // request servers without adding themselves to the list
+                  @Suppress("UNNECESSARY_SAFE_CALL")
+                  message.hello.port?.let {
+                    serverSet.add(makeServer(remoteIP, it))
+                  }
                 }
                 // Upon GOODBYE, remove it from the set
                 Discovery.FromClientMessage.MessageCase.GOODBYE ->
-                  serverSet.remove(makeServer(remoteIP, message.goodbye.port))
+                  // All protobuf fields optional and will be null if omitted, I'm using this here to let clients
+                  // request servers without adding themselves to the list
+                  @Suppress("UNNECESSARY_SAFE_CALL")
+                  message.goodbye.port?.let {
+                    serverSet.remove(makeServer(remoteIP, it))
+                  }
                 // If we can't parse, just print something
                 Discovery.FromClientMessage.MessageCase.MESSAGE_NOT_SET, null ->
                   echo("Message from ${socket.remoteAddress} couldn't be parsed!")
