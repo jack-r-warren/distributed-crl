@@ -17,7 +17,7 @@ It would be the receiver's responsibility to valid a signature (if it exists) an
 
 An Authority consists of the following:
 
-- A Certificate
+ - Certificates for signing messages and authorizing participation (A single cert may have both usages, but is not preferred)
 - A list of Participants it has authorized
 - Everything a Participant consists of
 
