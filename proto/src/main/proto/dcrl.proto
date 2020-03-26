@@ -1,0 +1,86 @@
+// DCRL
+
+syntax = "proto3";
+
+message DCRLMessage {
+    oneof message_ {
+        ParticipantRequest participant_request = 1;
+        ParticipantResponse participant_response = 2;
+        ParticipantIntroduction participant_introduction = 3;
+        CertificateRevocation certificate_revocation = 4;
+        BlockchainRequest blockchain_request = 5;
+        BlockRequest block_request = 6;
+        ErrorMessage error_message = 7;
+        SignedMessage signed_message = 8;
+    }
+}
+
+message ParticipantRequest {
+    // TODO
+}
+
+message ParticipantResponse {
+    // TODO
+}
+
+message ParticipantIntroduction {
+    // TODO
+}
+
+message CertificateRevocation {
+    Certificate certificate = 1;
+}
+
+message BlockchainRequest {}
+
+message BlockRequest {
+    uint32 height = 1;
+}
+
+message ErrorMessage {
+    string error = 1;
+}
+
+message SignedMessage {
+    Certificate certificate = 1;
+    bytes signature = 2;
+    oneof message_ {
+        CertificateRevocation certificate_revocation = 3;
+        BlockMessage block_message = 4;
+        BlockchainResponse blockchain_response = 5;
+        BlockResponse block_response = 6;
+        ErrorMessage error_message = 7;
+    }
+}
+
+message BlockMessage {
+    Certificate certificate = 1;
+    uint32 height = 2;
+    bytes previous_block = 3;
+    uint64 timestamp = 4;
+    bytes merkle_root = 5;
+    repeated CertificateRevocation certificate_revocations = 6;
+}
+
+message BlockchainResponse {
+    repeated BlockMessage blocks = 1;
+}
+
+message BlockResponse {
+    BlockMessage block = 1;
+}
+
+message Certificate {
+    string subject = 1;
+    uint64 valid_from = 2;
+    uint32 valid_length = 3;
+    repeated CertificateUsage usages = 4;
+    bytes signing_public_key = 5;
+    bytes issuer = 6;
+    bytes issuer_signature = 7;
+}
+
+enum CertificateUsage {
+    AUTHORITY = 1;
+    PARTICIPATION = 2;
+}
