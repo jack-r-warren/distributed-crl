@@ -17,7 +17,7 @@ It would be the receiver's responsibility to valid a signature (if it exists) an
 
 An Authority consists of the following:
 
-- A Certificate which self-signed
+- A Certificate which is self-signed
 - Everything a Participant consists of
 
 In addition, an Authority needs to perform the following:
