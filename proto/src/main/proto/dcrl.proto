@@ -4,27 +4,12 @@ syntax = "proto3";
 
 message DCRLMessage {
     oneof message_ {
-        ParticipantRequest participant_request = 1;
-        ParticipantResponse participant_response = 2;
-        ParticipantIntroduction participant_introduction = 3;
-        CertificateRevocation certificate_revocation = 4;
-        BlockchainRequest blockchain_request = 5;
-        BlockRequest block_request = 6;
-        ErrorMessage error_message = 7;
-        SignedMessage signed_message = 8;
+        CertificateRevocation certificate_revocation = 1;
+        BlockchainRequest blockchain_request = 2;
+        BlockRequest block_request = 3;
+        ErrorMessage error_message = 4;
+        SignedMessage signed_message = 5;
     }
-}
-
-message ParticipantRequest {
-    // TODO
-}
-
-message ParticipantResponse {
-    // TODO
-}
-
-message ParticipantIntroduction {
-    // TODO
 }
 
 message CertificateRevocation {
