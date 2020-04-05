@@ -2,14 +2,14 @@
 
 ## Design Choices
 
-- Authorities are hard-coded into each party since Authority status is typically gained and revoked out-of-band.
+- Authorities are hard-coded since Authority status is typically gained and revoked out-of-band.
 - Participant status is given to those with a Participant Certificate signed by an Authority.
 - DCRLMessages are either signed or unsigned.
 Another approach would be to have every message signed, and messages that should not be signed will not have the necessary fields.
 It would be the receiver's responsibility to valid a signature (if it exists) and *whether a signature is necessary for the message*.
 - BlockRequests are unsigned, since an identity does not need to be proven.
 - All messages are unencrypted since confidentiality is not necessary to provide.
-- We will want to mention that the Discovery Server is for our proof of concept. Since the messages from the Discovery Server are not signed, there is a possibility that an attacker would edit who is an Authority. Then a self-signed Authority Certificate would be accepted.
+- We will want to mention that the Discovery Server is for our proof of concept. Since the messages from the Discovery Server are not signed, there is a possibility that an attacker would edit who is an Authority. Then a self-signed Authority Certificate would be accepted. I think that the Discovery Server will have to say who is an Authority and who is a Participant. Otherwise, the Participants will need to have a hard-coded list of Authorities. An attack could be a Participant self-signs an Authority Certificate.
 
 ## Data Structures
 
