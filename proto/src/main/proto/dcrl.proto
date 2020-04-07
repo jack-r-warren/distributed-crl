@@ -72,8 +72,8 @@ message Certificate {
 }
 
 enum CertificateUsage {
-    AUTHORITY = 0;
-    PARTICIPATION = 1;
+    AUTHORITY = 1;
+    PARTICIPATION = 2;
 }
 
 // Needed for new servers to tell existing ones that they now exist
