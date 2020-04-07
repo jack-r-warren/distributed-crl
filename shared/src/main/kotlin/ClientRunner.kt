@@ -18,19 +18,21 @@ class ClientRunner(private val runnable: suspend (Collection<NetworkLocation>) -
     help = "The address of the discovery server, like 0.0.0.0:12345"
   ).convert { NetworkLocation.from(it) }.required()
 
-  override fun run(): Unit = runBlocking {
-    // Get any other connected servers
-    val otherServers: Collection<NetworkLocation> = aSocket(ActorSelectorManager(Dispatchers.IO))
-      .tcp()
-      .connect(discovery).use { discoverySocket ->
-        Discovery.Hello.getDefaultInstance().writeTo(discoverySocket.openWriteChannel(true).toOutputStream())
+  override fun run(): Unit {
+    runBlocking {
+      // Get any other connected servers
+      val otherServers: Collection<NetworkLocation> = aSocket(ActorSelectorManager(Dispatchers.IO))
+        .tcp()
+        .connect(discovery).use { discoverySocket ->
+          Discovery.Hello.getDefaultInstance().writeTo(discoverySocket.openWriteChannel(true).toOutputStream())
 
-        Discovery.Response.parseDelimitedFrom(discoverySocket.openReadChannel().toInputStream())
-          .serversList
-          .map { NetworkLocation(it) }
-      }
+          Discovery.Response.parseDelimitedFrom(discoverySocket.openReadChannel().toInputStream())
+            .serversList
+            .map { NetworkLocation(it) }
+        }
 
-    // The meat of everything; actually call whatever needs the other servers
-    runnable.invoke(otherServers)
+      // The meat of everything; actually call whatever needs the other servers
+      runnable.invoke(otherServers)
+    }
   }
 }
