@@ -18,44 +18,46 @@ class ServerRunner(private val runnable: suspend (ServerSocket, Collection<Netwo
     help = "The address of the discovery server, like 0.0.0.0:12345"
   ).convert { NetworkLocation.from(it) }.required()
 
-  override fun run(): Unit = runBlocking {
-    // Make the server socket
-    val serverSocket = aSocket(ActorSelectorManager(Dispatchers.IO))
-      .tcp()
-      .bind()
+  override fun run(): Unit {
+    runBlocking {
+      // Make the server socket
+      val serverSocket = aSocket(ActorSelectorManager(Dispatchers.IO))
+        .tcp()
+        .bind()
 
-    // Compute the server's port as late as possible (but keep track of it in case something happens
-    val serverSocketPort by lazy { (serverSocket.localAddress as InetSocketAddress).port }
+      // Compute the server's port as late as possible (but keep track of it in case something happens
+      val serverSocketPort by lazy { (serverSocket.localAddress as InetSocketAddress).port }
 
-    // Inform the discover server of us and get any other connected servers
-    val otherServers: Collection<NetworkLocation> = aSocket(ActorSelectorManager(Dispatchers.IO))
-      .tcp()
-      .connect(discovery).use { discoverySocket ->
-        Discovery.Hello.newBuilder().apply {
-          this.port = serverSocketPort
-        }.build().writeTo(discoverySocket.openWriteChannel(true).toOutputStream())
-
-        Discovery.Response.parseDelimitedFrom(discoverySocket.openReadChannel().toInputStream())
-          .serversList
-          .map { NetworkLocation(it) }
-      }
-
-    try {
-      // The meat of everything; actually call whatever needs the socket and the other servers
-      runnable.invoke(serverSocket, otherServers)
-    } finally {
-
-      // Tell the discovery server that we are/have shut down
-      aSocket(ActorSelectorManager(Dispatchers.IO))
+      // Inform the discover server of us and get any other connected servers
+      val otherServers: Collection<NetworkLocation> = aSocket(ActorSelectorManager(Dispatchers.IO))
         .tcp()
         .connect(discovery).use { discoverySocket ->
-          Discovery.Goodbye.newBuilder().apply {
+          Discovery.Hello.newBuilder().apply {
             this.port = serverSocketPort
           }.build().writeTo(discoverySocket.openWriteChannel(true).toOutputStream())
+
+          Discovery.Response.parseDelimitedFrom(discoverySocket.openReadChannel().toInputStream())
+            .serversList
+            .map { NetworkLocation(it) }
         }
 
-      // Try to close the server socket and swallow any related errors
-      kotlin.runCatching { serverSocket.close() }
+      try {
+        // The meat of everything; actually call whatever needs the socket and the other servers
+        runnable.invoke(serverSocket, otherServers)
+      } finally {
+
+        // Tell the discovery server that we are/have shut down
+        aSocket(ActorSelectorManager(Dispatchers.IO))
+          .tcp()
+          .connect(discovery).use { discoverySocket ->
+            Discovery.Goodbye.newBuilder().apply {
+              this.port = serverSocketPort
+            }.build().writeTo(discoverySocket.openWriteChannel(true).toOutputStream())
+          }
+
+        // Try to close the server socket and swallow any related errors
+        kotlin.runCatching { serverSocket.close() }
+      }
     }
   }
 }

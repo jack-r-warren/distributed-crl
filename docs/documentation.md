@@ -34,7 +34,7 @@ A Participant consists of the following:
 - A list of CertificateRevocations to process
 - The Blockchain
 - The hash and height of the most recent validated Block (for efficiency when validating new Blocks)
-- Everything a Non-Participant consists of
+- Everything an Observer consists of
 
 In addition, a Participant needs to perform the following:
 
@@ -43,14 +43,14 @@ In addition, a Participant needs to perform the following:
 - Receive a Block from a Participant
 - Request a specific Block by its height
 - Resolve forks
-- Respond to requests from Non-Participants
-- Everything a Non-Participant needs to perform
+- Respond to requests from Observers
+- Everything an Observer needs to perform
 
-### Non-Participants
+### Observer
 
-A Non-Participant consists of the following:
+An Observer consists of the following:
 
-In addition, a Non-Participant needs to perform the following:
+In addition, an Observer needs to perform the following:
 
 - Request a copy of the Blockchain
 
@@ -87,7 +87,7 @@ A Certificate consists of the following:
 A CertificateUsage is one of the following:
 
 - AUTHORITY granting the ability to (1) sign CertificateRevocations and (2) sign Participant Cerificates
-- PARTICIPATION granting the ability to (1) create and sign new blocks for the blockchain and (2) serve Non-Participants the blockchain
+- PARTICIPATION granting the ability to (1) create and sign new blocks for the blockchain and (2) serve Observers the blockchain
 
 Authorities should have both usages if they wish to be a Participant.
 
@@ -115,7 +115,7 @@ This message is one of message 'transactions' in a Block.
 ### BlockchainRequest
 
 A message to a Participant requesting the entire Blockchain.
-Since this message can came from Non-Participants, it must be unsigned.
+Since this message can came from Observers, it must be unsigned.
 
 ### BlockRequest
 
@@ -152,7 +152,7 @@ A message from a Participant containing the Block at the requested height.
 
 ### Bootstrapping Process
 
-1. A party (Authority, Participant, Non-Participant) communicates with the Discovery Server to obtain a list of all Authorities and Participants.
+1. A party (Authority, Participant, Observer) communicates with the Discovery Server to obtain a list of all Authorities and Participants.
 
 ### Revocation Process
 
