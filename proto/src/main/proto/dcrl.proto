@@ -4,26 +4,17 @@ syntax = "proto3";
 
 message DCRLMessage {
     oneof message_ {
-        CertificateRevocation certificate_revocation = 1;
-        BlockchainRequest blockchain_request = 2;
-        BlockRequest block_request = 3;
-        ErrorMessage error_message = 4;
-        SignedMessage signed_message = 5;
+        UnsignedMessage unsigned_message = 1;
+        SignedMessage signed_message = 2;
     }
 }
 
-message CertificateRevocation {
-    Certificate certificate = 1;
-}
-
-message BlockchainRequest {}
-
-message BlockRequest {
-    uint32 height = 1;
-}
-
-message ErrorMessage {
-    string error = 1;
+message UnsignedMessage {
+    oneof message_ {
+        BlockchainRequest blockchain_request = 1;
+        BlockRequest block_request = 2;
+        ErrorMessage error_message = 3;
+    }
 }
 
 message SignedMessage {
@@ -35,12 +26,27 @@ message SignedMessage {
         BlockchainResponse blockchain_response = 5;
         BlockResponse block_response = 6;
         ErrorMessage error_message = 7;
+        Announce announce = 8;
     }
+}
+
+message CertificateRevocation {
+    Certificate certificate = 1;
+}
+
+message BlockchainRequest {}
+
+message BlockRequest {
+    uint64 height = 1;
+}
+
+message ErrorMessage {
+    string error = 1;
 }
 
 message BlockMessage {
     Certificate certificate = 1;
-    uint32 height = 2;
+    uint64 height = 2;
     bytes previous_block = 3;
     uint64 timestamp = 4;
     bytes merkle_root = 5;
@@ -61,11 +67,20 @@ message Certificate {
     uint32 valid_length = 3;
     repeated CertificateUsage usages = 4;
     bytes signing_public_key = 5;
-    bytes issuer = 6;
+    bytes issuer_certificate_hash = 6;
     bytes issuer_signature = 7;
 }
 
 enum CertificateUsage {
     AUTHORITY = 1;
     PARTICIPATION = 2;
+}
+
+// Needed for new servers to tell existing ones that they now exist
+//      Discovery server makes sure new people joining know everything,
+//      but existing people need to be informed. It is sufficient to
+//      send a signed dummy message, so that a receiver knows they should
+//      try to involve the new participant when they forward messages
+message Announce {
+    uint64 nonce = 1;
 }
