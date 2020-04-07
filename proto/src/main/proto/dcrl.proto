@@ -19,7 +19,7 @@ message CertificateRevocation {
 message BlockchainRequest {}
 
 message BlockRequest {
-    uint32 height = 1;
+    uint64 height = 1;
 }
 
 message ErrorMessage {
@@ -40,7 +40,7 @@ message SignedMessage {
 
 message BlockMessage {
     Certificate certificate = 1;
-    uint32 height = 2;
+    uint64 height = 2;
     bytes previous_block = 3;
     uint64 timestamp = 4;
     bytes merkle_root = 5;
