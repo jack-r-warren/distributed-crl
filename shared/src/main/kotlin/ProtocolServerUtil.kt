@@ -12,10 +12,11 @@ import java.net.InetSocketAddress
 
 // An plain function that will run a given protocol server. Command line needs to be parsed or whatever before
 // calling this function
-fun runProtocolServer(
+fun <T : ProtocolServer> runProtocolServer(
   discoveryServer: NetworkIdentity,
   becomeDiscoverable: Boolean = true,
-  protocolServerFactory: (MutableMap<NetworkIdentity, SocketTuple>) -> ProtocolServer
+  protocolServerFactory: (MutableMap<NetworkIdentity, SocketTuple>) -> T,
+  callbackWithConfiguredServer: ((T) -> Unit)? = null
 ): Unit {
   runBlocking {
     // Make the server socket
@@ -45,10 +46,12 @@ fun runProtocolServer(
       }
 
     try {
-      protocolServerFactory(otherServers).let { protocolServer: ProtocolServer ->
+      protocolServerFactory(otherServers).let { protocolServer: T ->
         // For every server we know about, initiate a socket
         for ((identity, socket) in protocolServer.otherServers)
           launch { protocolServer.babysitSocket(identity, socket) }
+
+        callbackWithConfiguredServer?.let { launch { it.invoke(protocolServer) } }
 
         // Listen for any future connections, accept each as a socket
         while (true) SocketTuple(serverSocket.accept()).let { socket ->
