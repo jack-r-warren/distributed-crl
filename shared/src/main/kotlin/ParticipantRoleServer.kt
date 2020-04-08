@@ -7,5 +7,4 @@ open class ParticipantRoleServer(otherServers: MutableMap<NetworkIdentity, Socke
   init {
   }
 
-
 }
