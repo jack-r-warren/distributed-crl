@@ -6,6 +6,7 @@ import com.google.protobuf.GeneratedMessageV3;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("UnstableApiUsage")
 public class HashingUtils {
 
   /*
