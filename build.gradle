@@ -71,7 +71,9 @@ configure(subprojects.findAll {
         testImplementation 'org.junit.jupiter:junit-jupiter:5.6.0'
     }
 
-    Closure<Void> kotlinCompilationOptions = {
+    // Groovy is a bad language but its what Gradle is in so :shrug:
+    //noinspection GroovyAssignabilityCheck
+    def kotlinCompilationOptions = {
         kotlinOptions {
             // Kotlin only cares about Java 6 vs 8, so this is the correct setting to target Java 13
             jvmTarget = '1.8'
@@ -89,6 +91,13 @@ configure(subprojects.findAll {
 
     test {
         useJUnitPlatform()
+    }
+}
+
+// For 'client', which needs to run a web server as a public interface, configure:
+project('client') {
+    dependencies {
+        implementation "io.ktor:ktor-server-netty:$ktor_version"
     }
 }
 
