@@ -19,6 +19,7 @@ object ClientMain : CliktCommand() {
 
   override fun run() = runProtocolServer(
     discoveryServer = discovery,
+    becomeDiscoverable = false,
     // Method reference syntax, used here to reference a constructor...
     protocolServerFactory = ::ObserverRoleServer,
     // ...and used here to reference a method of this class
