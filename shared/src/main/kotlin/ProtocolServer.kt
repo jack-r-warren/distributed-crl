@@ -18,8 +18,9 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
   fun babysitSocket(identity: NetworkIdentity, socket: SocketTuple) {
     try {
       // Receive messages and send any non-null outputs of the handleMessage function
-      while (true)
+      while (true) {
         handleMessage(identity, Dcrl.DCRLMessage.parseDelimitedFrom(socket.inputStream))?.writeTo(socket.outputStream)
+      }
     } catch (e: Throwable) {
       println("Error bubbled up to socket handling, so the socket ($identity) was closed.")
       println(e)
