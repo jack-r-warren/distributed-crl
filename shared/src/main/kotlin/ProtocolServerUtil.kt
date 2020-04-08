@@ -21,7 +21,7 @@ fun runProtocolServer(
     // Make the server socket
     val serverSocket = aSocket(ActorSelectorManager(Dispatchers.IO)).tcp().bind()
 
-    // Compute the server's port as late as possible (but keep track of it in case something happens
+    // Compute the server's port as late as possible (but keep track of it in case something happens)
     val serverSocketPort by lazy { (serverSocket.localAddress as InetSocketAddress).port }
 
     // Inform the discovery server of us and initiate a client connection to everyone the
@@ -59,7 +59,6 @@ fun runProtocolServer(
         }
       }
     } finally {
-
       // Clean up all the sockets
       for (socket in otherServers.values)
         kotlin.runCatching { if (!socket.isClosed) socket.close() }
@@ -77,8 +76,6 @@ fun runProtocolServer(
       // Try to close the server socket and swallow any related errors
       kotlin.runCatching { if (!serverSocket.isClosed) serverSocket.close() }
     }
-
-
   }
 }
 

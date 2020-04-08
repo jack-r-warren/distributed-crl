@@ -38,7 +38,7 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
     throw IllegalArgumentException("Message case in $message was not set")
 
   private fun failOnNull(message: Message): Nothing =
-    throw IllegalArgumentException("Message case in $message wasn't recognized (did you add a new case?)")
+    throw IllegalArgumentException("Message case in $message was null")
 
   fun handleMessage(identity: NetworkIdentity, message: Dcrl.DCRLMessage): Dcrl.DCRLMessage? =
     when (message.messageCase) {
@@ -54,7 +54,7 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
       Dcrl.UnsignedMessage.MessageCase.BLOCK_REQUEST -> handleMessage(identity, message.blockRequest)
       Dcrl.UnsignedMessage.MessageCase.ERROR_MESSAGE -> handleMessage(identity, message.errorMessage)
       Dcrl.UnsignedMessage.MessageCase.MESSAGE_NOT_SET -> failOnNotSet(message)
-      else -> failOnNull(message)
+      null -> failOnNull(message)
     }
 
   abstract fun handleMessage(identity: NetworkIdentity, message: Dcrl.BlockchainRequest): Dcrl.DCRLMessage?
@@ -86,7 +86,7 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
       Dcrl.SignedMessage.MessageCase.ERROR_MESSAGE -> handleMessage(identity, message.errorMessage, message.certificate)
       Dcrl.SignedMessage.MessageCase.ANNOUNCE -> handleMessage(identity, message.announce, message.certificate)
       Dcrl.SignedMessage.MessageCase.MESSAGE_NOT_SET -> failOnNotSet(message)
-      else -> failOnNull(message)
+      null -> failOnNull(message)
     }
 
   abstract fun handleMessage(
