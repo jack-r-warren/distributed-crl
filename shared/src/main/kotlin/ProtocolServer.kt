@@ -9,7 +9,7 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
     hashCert(it) to it
   }.toMap()
 
-  protected var currentRevokedList = HashMap<ByteArray, Dcrl.Certificate>()
+  protected val currentRevokedList = HashMap<ByteArray, Dcrl.Certificate>()
 
   companion object {
     fun readTrustStore(dir: File): List<Dcrl.Certificate> {

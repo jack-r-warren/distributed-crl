@@ -97,7 +97,7 @@ public class ObserverRoleServer extends ProtocolServer {
       return ProtocolServerUtil.buildErrorMessage("Empty blockchain.");
     } else {
       this.blockchain = response;
-      processBlockchain()
+      processBlockchain();
       this.timestamp = (new Date()).getTime();
       return null;
     }
@@ -109,11 +109,11 @@ public class ObserverRoleServer extends ProtocolServer {
    */
   protected void processBlockchain() {
 
-    this.currentRevokedList.clear()
+    this.getCurrentRevokedList().clear();
 
-    for (block : this.blockchain) {
-      for (revocation : block.certificate_revocations) {
-
+    for (Dcrl.BlockMessage block : this.blockchain) {
+      for (Dcrl.CertificateRevocation revocation : block.getCertificateRevocationsList()) {
+        this.getCurrentRevokedList().put(Util.hashCert(revocation.getCertificate()), revocation.getCertificate());
       }
     }
   }
