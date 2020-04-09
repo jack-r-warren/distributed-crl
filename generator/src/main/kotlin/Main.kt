@@ -1,5 +1,6 @@
 import Dcrl.Certificate
-import Util.*
+import Util.hash
+import Util.signCert
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.*
