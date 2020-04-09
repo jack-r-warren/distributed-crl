@@ -1,6 +1,7 @@
 import Util.hashCert
 import com.google.protobuf.Message
 import io.ktor.network.sockets.isClosed
+import org.apache.commons.codec.binary.Base64
 import org.apache.commons.codec.binary.Hex
 import java.io.File
 
@@ -60,9 +61,9 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
   Public-facing interface stuff
    */
 
-  // Assumes the hash is a hexstring
+  // Assumes the hash is a base64 encoded bytes
   fun checkCertificate(hash: String): CheckResponse {
-    if (currentRevokedList.containsKey(Hex.decodeHex(hash))) {
+    if (currentRevokedList.containsKey(Base64.decodeBase64(hash))) {
       return CheckResponse.REVOKED
     }
     return CheckResponse.NOT_REVOKED
