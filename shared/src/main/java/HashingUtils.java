@@ -1,6 +1,9 @@
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
+import com.google.common.primitives.Ints;
+import com.google.common.primitives.Longs;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.GeneratedMessageV3;
 
 import java.util.ArrayList;
@@ -81,7 +84,6 @@ public class HashingUtils {
   }
 
   public static byte[] hash(GeneratedMessageV3 msg) {
-    // TODO is this the right way of doing this?
     if (msg instanceof Dcrl.CertificateOrBuilder) {
       return hashCert((Dcrl.CertificateOrBuilder) msg);
     }
@@ -121,16 +123,33 @@ public class HashingUtils {
     HashFunction hf = Hashing.sha256();
 
     byte[] hash = hf.newHasher()
-        .putBytes(hash(block.getCertificate()))
+        .putBytes(digestForHash(block.getCertificate()))
         .putLong(block.getHeight())
         .putBytes(block.getPreviousBlock().toByteArray())
         .putLong(block.getTimestamp())
-        // TODO do I need to handle case of no Merkle root and I need to generate it?
         .putBytes(block.getMerkleRoot().toByteArray())
         .hash()
         .asBytes();
 
     return hash;
+  }
+
+  public static byte[] digestForHash(Dcrl.CertificateOrBuilder cert) {
+
+    ByteString digest = ByteString.EMPTY;
+    digest = digest
+        .concat(cert.getSubjectBytes())
+        .concat(ByteString.copyFrom(Longs.toByteArray(cert.getValidFrom())))
+        .concat(ByteString.copyFrom(Ints.toByteArray(cert.getValidLength())));
+    for (Dcrl.CertificateUsage usage : cert.getUsagesList()) {
+      digest = digest.concat(ByteString.copyFrom(Ints.toByteArray(usage.getNumber())));
+    }
+    digest = digest
+        .concat(cert.getSigningPublicKey())
+        .concat(cert.getIssuerCertificateHash())
+        .concat(cert.getIssuerSignature());
+
+    return digest.toByteArray();
   }
 
 }
