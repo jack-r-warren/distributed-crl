@@ -1,12 +1,15 @@
 import Util.hashCert
 import com.google.protobuf.Message
 import io.ktor.network.sockets.isClosed
+import org.apache.commons.codec.binary.Hex
 import java.io.File
 
 abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, SocketTuple>, trustStorePath: File) {
   val trustStore: Map<ByteArray, Dcrl.Certificate> = readTrustStore(trustStorePath).map {
     hashCert(it) to it
   }.toMap()
+
+  val currentRevokedList = HashMap<ByteArray, Dcrl.Certificate>()
 
   companion object {
     fun readTrustStore(dir: File): List<Dcrl.Certificate> {
@@ -57,8 +60,11 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
   Public-facing interface stuff
    */
 
-  // I don't know how we want the hash to be encoded as a string, but it needs to go in a URL.
+  // Assumes the hash is a hexstring
   fun checkCertificate(hash: String): CheckResponse {
+    if (currentRevokedList.containsKey(Hex.decodeHex(hash))) {
+      return CheckResponse.REVOKED
+    }
     return CheckResponse.NOT_REVOKED
   }
 
