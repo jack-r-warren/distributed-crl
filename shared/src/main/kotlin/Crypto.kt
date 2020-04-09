@@ -25,3 +25,13 @@ fun ByteArray.verifySign(sign: ByteArray, publicKey: ByteArray) = let { input ->
     }
   }
 }
+
+// We pass this a lambda. In Kotlin, call this like
+// `myCertificate.verifySignature { issuerHash -> TODO(return the issuer or null if the hash doesn't match something) }`
+fun Dcrl.Certificate.verifySignature(getIssuer: (ByteArray) -> Dcrl.Certificate?): Boolean = let { certificate ->
+  certificate.issuerCertificateHash.let { if (it == null || it.isEmpty) certificate else getIssuer(it.toByteArray()) }
+    ?.let { issuer ->
+      Util.digestForSignature(certificate)
+        .verifySign(certificate.issuerSignature.toByteArray(), issuer.signingPublicKey.toByteArray())
+    } ?: false
+}
