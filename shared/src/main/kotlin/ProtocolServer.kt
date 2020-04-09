@@ -9,6 +9,29 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
     hashCert(it) to it
   }.toMap();
 
+  companion object {
+    fun readTrustStore(path: String): List<Dcrl.Certificate> {
+      val dir = File(path)
+      if (!dir.isDirectory) {
+        throw InvalidPathException(path, "Not a folder");
+      }
+
+      return dir.walk().map {
+        var cert: Dcrl.Certificate? = null;
+        if (it.isFile) {
+          try {
+            cert = Dcrl.Certificate.parseFrom(it.readBytes())
+          } catch (e: Exception) {
+            System.err.println("Failed to parse ${it.absolutePath}, ignoring")
+          }
+        } else {
+          System.err.println("Ignoring ${it.absolutePath} because it is not a file.")
+        }
+        cert
+      }.filterNotNull().toList()
+    }
+  }
+
   /*
   Socket stuff
    */
@@ -42,12 +65,11 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
 
   // I don't know how we want the hash to be encoded as a string, but it needs to go in a URL.
   fun checkCertificate(hash: String): CheckResponse {
-
-    return CheckResponse.UNKNOWN
+    return CheckResponse.NOT_REVOKED
   }
 
   enum class CheckResponse {
-    VALID, INVALID, UNKNOWN
+    NOT_REVOKED, REVOKED
   }
 
   /*
@@ -138,25 +160,4 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
     message: Dcrl.Announce,
     from: Dcrl.Certificate
   ): Dcrl.DCRLMessage?
-
-  fun readTrustStore(path: String): List<Dcrl.Certificate> {
-    val dir = File(path)
-    if (!dir.isDirectory) {
-      throw InvalidPathException(path, "Not a folder");
-    }
-
-    return dir.walk().map {
-      var cert: Dcrl.Certificate? = null;
-      if (it.isFile) {
-        try {
-          cert = Dcrl.Certificate.parseFrom(it.readBytes())
-        } catch (e: Exception) {
-          System.err.println("Failed to parse ${it.absolutePath}, ignoring")
-        }
-      } else {
-        System.err.println("Ignoring ${it.absolutePath} because it is not a file.")
-      }
-      cert
-    }.filterNotNull().toList()
-  }
 }
