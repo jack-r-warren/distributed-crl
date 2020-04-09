@@ -93,7 +93,7 @@ public class ObserverRoleServer extends ProtocolServer{
                                         @NotNull Dcrl.Certificate from) {
     // TODO verify signature
 
-     List<Dcrl.BlockMessage> response = message.getBlocksList();
+    List<Dcrl.BlockMessage> response = message.getBlocksList(); 
 
      // error checking before updating this.blockchain
     List<Dcrl.BlockMessage> empty = Collections.emptyList();
