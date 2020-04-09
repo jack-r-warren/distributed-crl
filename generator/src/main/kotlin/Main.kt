@@ -1,4 +1,5 @@
 import Dcrl.Certificate
+import Util.*
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.*
@@ -61,13 +62,11 @@ object Generator : CliktCommand() {
     if (issuer_cert != null) {
       val certFile = readFile("$issuer_cert$CERT_FILE_EXT")
       val secretKey = readFile("$issuer_cert$SECRET_KEY_FILE_EXT")
-      TODO("Need hash cert and signature")
-//      certBuilder.setIssuerCertificateHash(util.hashCert(Dcrl.Certificate.parseFrom(certFile)))
-//      certBuilder.setIssuerSignature(util.signCert(secretKey, certBuilder.build()))
+      certBuilder.issuerCertificateHash = ByteString.copyFrom(hash(Certificate.parseFrom(certFile)))
+      certBuilder.issuerSignature = ByteString.copyFrom(signCert(certBuilder, secretKey))
     } else {
-      TODO("generate signature for cert using private key")
-//      val secretKey = readFile("$filename$SECRET_KEY_FILE_EXT")
-//      certBuilder.setIssuerSignature(util.signCert(secretKey, certBuilder.build()))
+      val secretKey = readFile("$filename$SECRET_KEY_FILE_EXT")
+      certBuilder.issuerSignature = ByteString.copyFrom(signCert(certBuilder, secretKey))
     }
 
     val cert = certBuilder.build()

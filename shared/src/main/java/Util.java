@@ -242,7 +242,7 @@ public class Util {
   }
 
   @NotNull
-  private static byte[] signCert(@NotNull Dcrl.CertificateOrBuilder cert, @NotNull byte[] private_key) {
+  public static byte[] signCert(@NotNull Dcrl.CertificateOrBuilder cert, @NotNull byte[] private_key) {
     return CryptoKt.sign(digestForSignature(cert), private_key);
   }
 
