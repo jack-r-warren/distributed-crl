@@ -23,7 +23,7 @@ public class ObserverRoleServer extends ProtocolServer{
   private long timestamp = 0;
 
   public ObserverRoleServer(@NotNull Map<NetworkIdentity, SocketTuple> otherServers) {
-    super(otherServers); // TODO think I need this??
+    super(otherServers);
     this.otherServers = otherServers;
     this.preferenceList = new ArrayList<NetworkIdentity>();
   }
