@@ -104,7 +104,7 @@ public class Util {
   }
 
   @NotNull
-  private static byte[] hashCert(@NotNull Dcrl.CertificateOrBuilder cert) {
+  public static byte[] hashCert(@NotNull Dcrl.CertificateOrBuilder cert) {
     HashFunction hf = Hashing.sha256();
 
     Hasher hasher = hf.newHasher()
@@ -125,7 +125,7 @@ public class Util {
   Function for hashing a BlockMessage
    */
   @NotNull
-  private static byte[] hashBlock(@NotNull Dcrl.BlockMessageOrBuilder block) {
+  public static byte[] hashBlock(@NotNull Dcrl.BlockMessageOrBuilder block) {
     HashFunction hf = Hashing.sha256();
 
     byte[] hash = hf.newHasher()
