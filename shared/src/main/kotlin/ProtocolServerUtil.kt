@@ -25,6 +25,15 @@ abstract class CommandLineBase : CliktCommand() {
     .required()
 }
 
+abstract class SignerCommandLineBase : CommandLineBase() {
+  protected val selfCertificate: File by option("--certificate", "--cert", "-c")
+    .file(fileOkay = true, folderOkay = false, exists = true, readable = true)
+    .required()
+  protected val selfPrivateKey: File by option("--key", "-key")
+    .file(fileOkay = true, folderOkay = false, exists = true, readable = true)
+    .required()
+}
+
 // An plain function that will run a given protocol server. Command line needs to be parsed or whatever before
 // calling this function
 fun <T : ProtocolServer> runProtocolServer(
