@@ -25,16 +25,3 @@ fun ByteArray.verifySign(sign: ByteArray, publicKey: ByteArray) = let { input ->
     }
   }
 }
-
-fun Dcrl.SignedMessage.verifySignature(): Boolean = let { message ->
-  when (message.messageCase) {
-    Dcrl.SignedMessage.MessageCase.CERTIFICATE_REVOCATION -> message.certificateRevocation
-    Dcrl.SignedMessage.MessageCase.BLOCK_MESSAGE -> message.blockMessage
-    Dcrl.SignedMessage.MessageCase.BLOCKCHAIN_RESPONSE -> message.blockchainResponse
-    Dcrl.SignedMessage.MessageCase.BLOCK_RESPONSE -> message.blockResponse
-    Dcrl.SignedMessage.MessageCase.ERROR_MESSAGE -> message.errorMessage
-    Dcrl.SignedMessage.MessageCase.ANNOUNCE -> message.announce
-    else -> null
-  }?.toByteArray()?.verifySign(message.signature.toByteArray(), message.certificate.signingPublicKey.toByteArray())
-    ?: false
-}
