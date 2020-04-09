@@ -96,8 +96,7 @@ public class ObserverRoleServer extends ProtocolServer{
     List<Dcrl.BlockMessage> response = message.getBlocksList(); 
 
      // error checking before updating this.blockchain
-    List<Dcrl.BlockMessage> empty = Collections.emptyList();
-    if (response.equals(empty)) {
+    if (response.isEmpty()) {
       return ProtocolServerUtil.buildErrorMessage("Empty blockchain.");
     } else {
       this.blockchain = response;
