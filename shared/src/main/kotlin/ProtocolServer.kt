@@ -5,9 +5,9 @@ import java.io.File
 import java.nio.file.InvalidPathException
 
 abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, SocketTuple>, trustStorePath: String) {
-  val trustStore = readTrustStore(trustStorePath).map {
+  val trustStore: Map<ByteArray, Dcrl.Certificate> = readTrustStore(trustStorePath).map {
     hashCert(it) to it
-  }.toMap();
+  }.toMap()
 
   companion object {
     fun readTrustStore(path: String): List<Dcrl.Certificate> {
