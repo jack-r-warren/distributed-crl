@@ -12,7 +12,7 @@ import io.ktor.server.netty.Netty
 fun main(args: Array<String>) = ClientMain.main(args)
 
 object ClientMain : SignerCommandLineBase() {
-  val webPort by option("--port", "-p").int().required()
+  private val webPort by option("--port", "-p").int().required()
 
   override fun run() = runProtocolServer(
     discoveryServer = discoveryNetworkIdentity,
