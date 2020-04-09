@@ -1,8 +1,12 @@
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import java.util.*;
 
-public class ObserverRoleServer extends ProtocolServer{
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+public class ObserverRoleServer extends ProtocolServer {
 
   /*
   Observer has
@@ -85,9 +89,9 @@ public class ObserverRoleServer extends ProtocolServer{
                                         @NotNull Dcrl.BlockchainResponse message,
                                         @NotNull Dcrl.Certificate from) {
 
-    List<Dcrl.BlockMessage> response = message.getBlocksList(); 
+    List<Dcrl.BlockMessage> response = message.getBlocksList();
 
-     // error checking before updating this.blockchain
+    // error checking before updating this.blockchain
     if (response.isEmpty()) {
       return ProtocolServerUtil.buildErrorMessage("Empty blockchain.");
     } else {
@@ -127,7 +131,7 @@ Adds a new NetworkIdentity to the Map of other servers, unless there is an error
   @Override
   public Dcrl.DCRLMessage handleMessage(@NotNull NetworkIdentity identity, @NotNull Dcrl.BlockchainRequest message) {
     return ProtocolServerUtil.buildErrorMessage(
-        String.format("Message type %s not supported.",message.getClass().toString())
+        String.format("Message type %s not supported.", message.getClass().toString())
     );
   }
 
@@ -135,7 +139,7 @@ Adds a new NetworkIdentity to the Map of other servers, unless there is an error
   @Override
   public Dcrl.DCRLMessage handleMessage(@NotNull NetworkIdentity identity, @NotNull Dcrl.BlockRequest message) {
     return ProtocolServerUtil.buildErrorMessage(
-        String.format("Message type %s not supported.",message.getClass().toString())
+        String.format("Message type %s not supported.", message.getClass().toString())
     );
   }
 
@@ -145,7 +149,7 @@ Adds a new NetworkIdentity to the Map of other servers, unless there is an error
                                         @NotNull Dcrl.CertificateRevocation message,
                                         @NotNull Dcrl.Certificate from) {
     return ProtocolServerUtil.buildErrorMessage(
-        String.format("Message type %s not supported.",message.getClass().toString())
+        String.format("Message type %s not supported.", message.getClass().toString())
     );
   }
 
@@ -155,7 +159,7 @@ Adds a new NetworkIdentity to the Map of other servers, unless there is an error
                                         @NotNull Dcrl.BlockMessage message,
                                         @NotNull Dcrl.Certificate from) {
     return ProtocolServerUtil.buildErrorMessage(
-        String.format("Message type %s not supported.",message.getClass().toString())
+        String.format("Message type %s not supported.", message.getClass().toString())
     );
   }
 
@@ -165,7 +169,7 @@ Adds a new NetworkIdentity to the Map of other servers, unless there is an error
                                         @NotNull Dcrl.BlockResponse message,
                                         @NotNull Dcrl.Certificate from) {
     return ProtocolServerUtil.buildErrorMessage(
-        String.format("Message type %s not supported.",message.getClass().toString())
+        String.format("Message type %s not supported.", message.getClass().toString())
     );
   }
 }

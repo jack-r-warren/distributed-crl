@@ -24,9 +24,9 @@ public class ProtocolServerUtil {
       message = Dcrl.DCRLMessage.newBuilder()
           .setSignedMessage(
               Dcrl.SignedMessage.newBuilder()
-                .setCertificate(certificate)
-                .setSignature(ByteString.copyFrom(Util.sign(error, private_key)))
-                .setErrorMessage(error)
+                  .setCertificate(certificate)
+                  .setSignature(ByteString.copyFrom(Util.sign(error, private_key)))
+                  .setErrorMessage(error)
           )
           .build();
     }
