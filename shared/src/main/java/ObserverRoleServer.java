@@ -1,9 +1,5 @@
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Writer;
 import java.util.*;
 
 public class ObserverRoleServer extends ProtocolServer{
@@ -16,67 +12,64 @@ public class ObserverRoleServer extends ProtocolServer{
     - a timestamp of when the last CRL was received
    */
 
-  private Map<NetworkIdentity, SocketTuple> otherServers;
-  private List<NetworkIdentity> preferenceList;
-  private Writer writer = new PrintWriter(System.out);
-  private List<Dcrl.BlockMessage> blockchain = new ArrayList<Dcrl.BlockMessage>();
-  private long timestamp = 0;
+  Map<NetworkIdentity, SocketTuple> otherServers;
+  List<NetworkIdentity> preferenceList;
+  List<Dcrl.BlockMessage> blockchain;
+  long timestamp;
 
-  public ObserverRoleServer(@NotNull Map<NetworkIdentity, SocketTuple> otherServers) {
-    super(otherServers);
-    this.otherServers = otherServers;
-    this.preferenceList = new ArrayList<NetworkIdentity>();
-  }
 
   public ObserverRoleServer(@NotNull Map<NetworkIdentity, SocketTuple> otherServers,
                             @NotNull List<NetworkIdentity> preferenceList) {
     super(otherServers);
     this.otherServers = otherServers;
     this.preferenceList = preferenceList;
+    this.blockchain = new ArrayList<Dcrl.BlockMessage>();
+    this.timestamp = 0;
   }
 
-  public ObserverRoleServer(@NotNull Map<NetworkIdentity, SocketTuple> otherServers, @NotNull Writer writer) {
-    super(otherServers);
-    this.otherServers = otherServers;
-    this.preferenceList = new ArrayList<NetworkIdentity>();
-    this.writer = writer;
+
+  public ObserverRoleServer(@NotNull Map<NetworkIdentity, SocketTuple> otherServers) {
+    this(otherServers, new ArrayList<NetworkIdentity>());
   }
 
-  public ObserverRoleServer(@NotNull Map<NetworkIdentity, SocketTuple> otherServers,
-                            @NotNull List<NetworkIdentity> preferenceList,
-                            @NotNull Writer writer) {
-    super(otherServers);
-    this.otherServers = otherServers;
-    this.preferenceList = preferenceList;
-    this.writer = writer;
-  }
 
   public void setPreferenceList(@NotNull List<NetworkIdentity> preferenceList) {
     this.preferenceList = preferenceList;
   }
 
-  /*
-  Requests a copy of the Blockchain from the first NetworkIdentity in the preference list, if there is one.
+  @NotNull
+  public List<NetworkIdentity> getPreferenceList() {
+    return this.preferenceList;
+  }
 
-  This function does not wait for a response.
-  */
-  public void requestBlockchain() {
+  /*
+  Requests a copy of the blockchain from a specific server.
+   */
+  public void requestBlockchain(NetworkIdentity server) {
     // build the request
     Dcrl.DCRLMessage request = Dcrl.DCRLMessage.newBuilder()
         .setUnsignedMessage(
             Dcrl.UnsignedMessage.newBuilder()
-              .setBlockchainRequest(
-                  Dcrl.BlockchainRequest.getDefaultInstance()
-              )
+                .setBlockchainRequest(
+                    Dcrl.BlockchainRequest.getDefaultInstance()
+                )
         )
         .build();
 
-      // send the request to the first preference, if there is one
+    sendMessageToIdentity(server, request);
+  }
+
+  /*
+  Requests a copy of the Blockchain from the first NetworkIdentity in the preference list, if there is one.
+  Defaults to a random server if there are no preferences.
+  */
+  public void requestBlockchain() {
+    // send the request to the first preference, if there is one
     if (this.preferenceList.size() > 0) {
-      sendMessageToIdentity(this.preferenceList.get(0), request);
+      requestBlockchain(this.preferenceList.get(0));
     } else {
       for (NetworkIdentity nt : this.otherServers.keySet()) {
-        sendMessageToIdentity(nt, request);
+        requestBlockchain(nt);
         break;
       }
     }
@@ -91,7 +84,6 @@ public class ObserverRoleServer extends ProtocolServer{
   public Dcrl.DCRLMessage handleMessage(@NotNull NetworkIdentity identity,
                                         @NotNull Dcrl.BlockchainResponse message,
                                         @NotNull Dcrl.Certificate from) {
-    // TODO verify signature
 
     List<Dcrl.BlockMessage> response = message.getBlocksList(); 
 
@@ -107,21 +99,6 @@ public class ObserverRoleServer extends ProtocolServer{
 
   /*
   Verifies the signature of the message
-  Adds a new NetworkIdentity to the Map of other servers, unless there is an error.
-   */
-  @Nullable
-  @Override
-  public Dcrl.DCRLMessage handleMessage(@NotNull NetworkIdentity identity,
-                                        @NotNull Dcrl.Announce message,
-                                        @NotNull Dcrl.Certificate from) {
-    // TODO verify signature
-
-    // TODO want to add the new NetworkIdentity to the Map, but I need a SocketTuple ...
-    return null;
-  }
-
-  /*
-  Verifies the signature of the message
   Prints the Error message
    */
   @Nullable
@@ -129,13 +106,20 @@ public class ObserverRoleServer extends ProtocolServer{
   public Dcrl.DCRLMessage handleMessage(@NotNull NetworkIdentity identity,
                                         @NotNull Dcrl.ErrorMessage message,
                                         @Nullable Dcrl.Certificate from) {
-    // TODO verify signature (if there is one)
+    System.out.println(message.getError());
+    return null;
+  }
 
-    try {
-      this.writer.write(message.getError());
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+  /*
+Verifies the signature of the message
+Adds a new NetworkIdentity to the Map of other servers, unless there is an error.
+ */
+  @Nullable
+  @Override
+  public Dcrl.DCRLMessage handleMessage(@NotNull NetworkIdentity identity,
+                                        @NotNull Dcrl.Announce message,
+                                        @NotNull Dcrl.Certificate from) {
+    // Don't think we do anything here... no need to reply with an ErrorMessage
     return null;
   }
 
