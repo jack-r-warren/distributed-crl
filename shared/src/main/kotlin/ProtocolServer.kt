@@ -31,6 +31,17 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
   }
 
   /*
+  Public-facing interface stuff
+   */
+
+  // I don't know how we want the hash to be encoded as a string, but it needs to go in a URL.
+  fun checkCertificate(hash: String): CheckResponse { return CheckResponse.UNKNOWN }
+
+  enum class CheckResponse {
+    VALID, INVALID, UNKNOWN
+  }
+
+  /*
   Message handling stuff
    */
 
