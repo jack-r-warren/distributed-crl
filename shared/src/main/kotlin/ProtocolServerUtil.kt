@@ -1,3 +1,8 @@
+import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.parameters.options.convert
+import com.github.ajalt.clikt.parameters.options.option
+import com.github.ajalt.clikt.parameters.options.required
+import com.github.ajalt.clikt.parameters.types.file
 import io.ktor.network.selector.ActorSelectorManager
 import io.ktor.network.sockets.aSocket
 import io.ktor.network.sockets.isClosed
@@ -10,6 +15,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.net.InetSocketAddress
+
+abstract class CommandLineBase : CliktCommand() {
+  protected val discoveryNetworkIdentity: NetworkIdentity by option("--discovery", "-d")
+    .convert { NetworkIdentity.from(it) }
+    .required()
+  protected val trustStoreDirectory: File by option("--trust", "-t")
+    .file(fileOkay = false, folderOkay = true, exists = true, readable = true)
+    .required()
+}
 
 // An plain function that will run a given protocol server. Command line needs to be parsed or whatever before
 // calling this function

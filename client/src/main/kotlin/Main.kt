@@ -1,5 +1,3 @@
-import com.github.ajalt.clikt.core.CliktCommand
-import com.github.ajalt.clikt.parameters.options.convert
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.int
@@ -13,13 +11,13 @@ import io.ktor.server.netty.Netty
 
 fun main(args: Array<String>) = ClientMain.main(args)
 
-object ClientMain : CliktCommand() {
-  private val discovery: NetworkIdentity by option().convert { NetworkIdentity.from(it) }.required()
+object ClientMain : CommandLineBase() {
   private val webPort: Int by option().int().required()
 
   override fun run() = runProtocolServer(
-    discoveryServer = discovery,
+    discoveryServer = discoveryNetworkIdentity,
     becomeDiscoverable = false,
+    trustStoreDirectory = trustStoreDirectory,
     // Method reference syntax, used here to reference a constructor...
     protocolServerFactory = ::ObserverRoleServer,
     // ...and used here to reference a method of this class
