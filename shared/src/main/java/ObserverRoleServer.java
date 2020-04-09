@@ -36,7 +36,7 @@ public class ObserverRoleServer extends ProtocolServer{
   }
 
   public ObserverRoleServer(@NotNull Map<NetworkIdentity, SocketTuple> otherServers, @NotNull Writer writer) {
-    super(otherServers); // TODO think I need this??
+    super(otherServers);
     this.otherServers = otherServers;
     this.preferenceList = new ArrayList<NetworkIdentity>();
     this.writer = writer;
@@ -56,11 +56,11 @@ public class ObserverRoleServer extends ProtocolServer{
   }
 
   /*
-  Requests a copy of the CRL from the first NetworkIdentity in the preference list, if there is one.
+  Requests a copy of the Blockchain from the first NetworkIdentity in the preference list, if there is one.
 
   This function does not wait for a response.
   */
-  public void requestCRL() {
+  public void requestBlockchain() {
     // build the request
     Dcrl.DCRLMessage request = Dcrl.DCRLMessage.newBuilder()
         .setUnsignedMessage(
