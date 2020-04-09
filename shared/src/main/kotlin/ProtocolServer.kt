@@ -2,20 +2,14 @@ import Util.hashCert
 import com.google.protobuf.Message
 import io.ktor.network.sockets.isClosed
 import java.io.File
-import java.nio.file.InvalidPathException
 
-abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, SocketTuple>, trustStorePath: String) {
+abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, SocketTuple>, trustStorePath: File) {
   val trustStore: Map<ByteArray, Dcrl.Certificate> = readTrustStore(trustStorePath).map {
     hashCert(it) to it
   }.toMap()
 
   companion object {
-    fun readTrustStore(path: String): List<Dcrl.Certificate> {
-      val dir = File(path)
-      if (!dir.isDirectory) {
-        throw InvalidPathException(path, "Not a folder");
-      }
-
+    fun readTrustStore(dir: File): List<Dcrl.Certificate> {
       return dir.walk().map {
         var cert: Dcrl.Certificate? = null;
         if (it.isFile) {

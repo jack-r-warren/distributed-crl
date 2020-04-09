@@ -1,6 +1,7 @@
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -23,8 +24,9 @@ public class ObserverRoleServer extends ProtocolServer {
 
 
   public ObserverRoleServer(@NotNull Map<NetworkIdentity, SocketTuple> otherServers,
+                            @NotNull File trustStore,
                             @NotNull List<NetworkIdentity> preferenceList) {
-    super(otherServers);
+    super(otherServers, trustStore);
     this.otherServers = otherServers;
     this.preferenceList = preferenceList;
     this.blockchain = new ArrayList<Dcrl.BlockMessage>();
@@ -32,8 +34,8 @@ public class ObserverRoleServer extends ProtocolServer {
   }
 
 
-  public ObserverRoleServer(@NotNull Map<NetworkIdentity, SocketTuple> otherServers) {
-    this(otherServers, new ArrayList<NetworkIdentity>());
+  public ObserverRoleServer(@NotNull Map<NetworkIdentity, SocketTuple> otherServers, @NotNull File trustStore) {
+    this(otherServers, trustStore, new ArrayList<NetworkIdentity>());
   }
 
 

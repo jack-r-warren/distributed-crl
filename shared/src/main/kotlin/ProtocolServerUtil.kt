@@ -8,6 +8,7 @@ import io.ktor.utils.io.jvm.javaio.toOutputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.io.File
 import java.net.InetSocketAddress
 
 // An plain function that will run a given protocol server. Command line needs to be parsed or whatever before
@@ -15,7 +16,8 @@ import java.net.InetSocketAddress
 fun <T : ProtocolServer> runProtocolServer(
   discoveryServer: NetworkIdentity,
   becomeDiscoverable: Boolean = true,
-  protocolServerFactory: (MutableMap<NetworkIdentity, SocketTuple>) -> T,
+  trustStoreDirectory: File,
+  protocolServerFactory: (MutableMap<NetworkIdentity, SocketTuple>, File) -> T,
   callbackWithConfiguredServer: ((T) -> Unit)? = null
 ): Unit {
   runBlocking {
@@ -46,7 +48,7 @@ fun <T : ProtocolServer> runProtocolServer(
       }
 
     try {
-      protocolServerFactory(otherServers).let { protocolServer: T ->
+      protocolServerFactory(otherServers, trustStoreDirectory).let { protocolServer: T ->
         // For every server we know about, initiate a socket
         for ((identity, socket) in protocolServer.otherServers)
           launch { protocolServer.babysitSocket(identity, socket) }
