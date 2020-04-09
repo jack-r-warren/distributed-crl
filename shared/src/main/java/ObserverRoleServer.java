@@ -97,8 +97,24 @@ public class ObserverRoleServer extends ProtocolServer {
       return ProtocolServerUtil.buildErrorMessage("Empty blockchain.");
     } else {
       this.blockchain = response;
+      processBlockchain()
       this.timestamp = (new Date()).getTime();
       return null;
+    }
+  }
+
+  /**
+   * Processes the blockchain to generate the current state of revoked CRLs. This function assumes that the blockchain
+   * list is in order.
+   */
+  protected void processBlockchain() {
+
+    this.currentRevokedList.clear()
+
+    for (block : this.blockchain) {
+      for (revocation : block.certificate_revocations) {
+
+      }
     }
   }
 
