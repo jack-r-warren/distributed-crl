@@ -25,7 +25,7 @@ public class ProtocolServerUtil {
           .setSignedMessage(
               Dcrl.SignedMessage.newBuilder()
                 .setCertificate(certificate)
-                .setSignature(ByteString.copyFrom(new byte[0])) // TODO TODO TODO need to change this so it actually signs the message!!!!
+                .setSignature(ByteString.copyFrom(Util.sign(error, private_key)))
                 .setErrorMessage(error)
           )
           .build();
