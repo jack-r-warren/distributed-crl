@@ -5,12 +5,13 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.GeneratedMessageV3;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("UnstableApiUsage")
-public class HashingUtils {
+public class Util {
 
   /*
   Function for generating the Merkle root of a list of CertificateRevocations.
@@ -26,7 +27,8 @@ public class HashingUtils {
     - Recur on each side
     - Concatenate the hashes and hash again
    */
-  public static byte[] merkleRoot(List<Dcrl.CertificateRevocation> revocations) {
+  @NotNull
+  public static byte[] merkleRoot(@NotNull List<Dcrl.CertificateRevocation> revocations) {
     if (revocations.size() == 0) {
       return new byte[0];
 
@@ -84,7 +86,8 @@ public class HashingUtils {
     }
   }
 
-  public static byte[] hash(GeneratedMessageV3 msg) {
+  @NotNull
+  public static byte[] hash(@NotNull GeneratedMessageV3 msg) {
     if (msg instanceof Dcrl.CertificateOrBuilder) {
       return hashCert((Dcrl.CertificateOrBuilder) msg);
     }
@@ -100,7 +103,8 @@ public class HashingUtils {
     return hash;
   }
 
-  private static byte[] hashCert(Dcrl.CertificateOrBuilder cert) {
+  @NotNull
+  private static byte[] hashCert(@NotNull Dcrl.CertificateOrBuilder cert) {
     HashFunction hf = Hashing.sha256();
 
     Hasher hasher = hf.newHasher()
@@ -120,7 +124,8 @@ public class HashingUtils {
   /*
   Function for hashing a BlockMessage
    */
-  private static byte[] hashBlock(Dcrl.BlockMessageOrBuilder block) {
+  @NotNull
+  private static byte[] hashBlock(@NotNull Dcrl.BlockMessageOrBuilder block) {
     HashFunction hf = Hashing.sha256();
 
     byte[] hash = hf.newHasher()
@@ -135,7 +140,8 @@ public class HashingUtils {
     return hash;
   }
 
-  public static byte[] digestForHash(Dcrl.CertificateOrBuilder cert) {
+  @NotNull
+  public static byte[] digestForHash(@NotNull Dcrl.CertificateOrBuilder cert) {
 
     ByteString digest = ByteString.EMPTY;
     digest = digest
@@ -151,6 +157,93 @@ public class HashingUtils {
         .concat(cert.getIssuerSignature());
 
     return digest.toByteArray();
+  }
+
+  /*
+  Signs the message's toByteArray().
+  If the message is a CertificateOrBuilder, then signs the byte digest
+   */
+  @NotNull
+  public static byte[] sign(@NotNull GeneratedMessageV3 message,
+                            byte[] private_key) {
+    if (message instanceof Dcrl.CertificateOrBuilder) {
+      return signCert((Dcrl.CertificateOrBuilder) message, private_key);
+    }
+
+    return CryptoKt.sign(message.toByteArray(), private_key);
+  }
+
+  @NotNull
+  public static boolean verify(@NotNull Dcrl.SignedMessage signedMessage) {
+
+    // get inner message from signedMessage
+    GeneratedMessageV3 message;
+    switch (signedMessage.getMessageCase()) {
+      case CERTIFICATE_REVOCATION:
+        message = signedMessage.getCertificateRevocation();
+        break;
+      case BLOCK_MESSAGE:
+        message = signedMessage.getBlockMessage();
+        break;
+      case BLOCKCHAIN_RESPONSE:
+        message = signedMessage.getBlockchainResponse();
+        break;
+      case BLOCK_RESPONSE:
+        message = signedMessage.getBlockResponse();
+        break;
+      case ERROR_MESSAGE:
+        message = signedMessage.getErrorMessage();
+        break;
+      case ANNOUNCE:
+        message = signedMessage.getAnnounce();
+        break;
+      default: // handles MESSAGE_NOT_SET case
+        return false;
+    }
+
+    // get signature from signedMessage
+    byte[] signature = signedMessage.getSignature().toByteArray();
+    // error checking
+    if (signature.length == 0) {
+      return false;
+    }
+
+    // get public key from cert
+    Dcrl.Certificate cert = signedMessage.getCertificate();
+    // error checking
+    if (cert.equals(Dcrl.Certificate.getDefaultInstance())) {
+      return false;
+    }
+    byte[] public_key = cert.getSigningPublicKey().toByteArray();
+    if (public_key.length == 0) {
+      return false;
+    }
+
+    return CryptoKt.verifySign(message.toByteArray(), signature, public_key);
+  }
+
+  @NotNull
+  public static byte[] digestForSignature(@NotNull Dcrl.CertificateOrBuilder cert) {
+
+    ByteString digest = ByteString.EMPTY;
+    digest = digest
+        .concat(cert.getSubjectBytes())
+        .concat(ByteString.copyFrom(Longs.toByteArray(cert.getValidFrom())))
+        .concat(ByteString.copyFrom(Ints.toByteArray(cert.getValidLength())));
+    for (Dcrl.CertificateUsage usage : cert.getUsagesList()) {
+      digest = digest.concat(ByteString.copyFrom(Ints.toByteArray(usage.getNumber())));
+    }
+    digest = digest
+        .concat(cert.getSigningPublicKey())
+        .concat(cert.getIssuerCertificateHash());
+    // issuer signature does not exist yet.
+
+    return digest.toByteArray();
+  }
+
+  @NotNull
+  private static byte[] signCert(@NotNull Dcrl.CertificateOrBuilder cert, @NotNull byte[] private_key) {
+    return CryptoKt.sign(digestForSignature(cert), private_key);
   }
 
 }
