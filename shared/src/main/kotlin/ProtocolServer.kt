@@ -1,9 +1,13 @@
+import Util.hashCert
 import com.google.protobuf.Message
 import io.ktor.network.sockets.isClosed
 import java.io.File
 import java.nio.file.InvalidPathException
 
-abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, SocketTuple>) {
+abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, SocketTuple>, trustStorePath: String) {
+  val trustStore = readTrustStore(trustStorePath).map {
+    hashCert(it) to it
+  }.toMap();
 
   /*
   Socket stuff
@@ -38,6 +42,7 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
 
   // I don't know how we want the hash to be encoded as a string, but it needs to go in a URL.
   fun checkCertificate(hash: String): CheckResponse {
+
     return CheckResponse.UNKNOWN
   }
 

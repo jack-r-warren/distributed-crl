@@ -88,7 +88,6 @@ public class ObserverRoleServer extends ProtocolServer {
   public Dcrl.DCRLMessage handleMessage(@NotNull NetworkIdentity identity,
                                         @NotNull Dcrl.BlockchainResponse message,
                                         @NotNull Dcrl.Certificate from) {
-
     List<Dcrl.BlockMessage> response = message.getBlocksList();
 
     // error checking before updating this.blockchain
@@ -115,9 +114,9 @@ public class ObserverRoleServer extends ProtocolServer {
   }
 
   /*
-Verifies the signature of the message
-Adds a new NetworkIdentity to the Map of other servers, unless there is an error.
- */
+  Verifies the signature of the message
+  Adds a new NetworkIdentity to the Map of other servers, unless there is an error.
+  */
   @Nullable
   @Override
   public Dcrl.DCRLMessage handleMessage(@NotNull NetworkIdentity identity,
