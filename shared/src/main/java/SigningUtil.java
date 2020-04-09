@@ -3,6 +3,8 @@ import com.google.common.primitives.Longs;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.GeneratedMessageV3;
 
+import org.jetbrains.annotations.NotNull;
+
 public class SigningUtil {
 
   /*
@@ -18,6 +20,7 @@ public class SigningUtil {
     return CryptoKt.sign(message.toByteArray(), private_key);
   }
 
+  @NotNull
   public static boolean verify(Dcrl.SignedMessage signedMessage) {
     if (signedMessage == null) {
       return false;
