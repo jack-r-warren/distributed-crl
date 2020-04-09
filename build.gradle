@@ -94,18 +94,20 @@ configure(subprojects.findAll {
     }
 }
 
+// For projects that need to run a web server, configure
+configure(subprojects.findAll {
+    ['client', 'certificate-authority'].contains(it.name)
+}) {
+    dependencies {
+        implementation "io.ktor:ktor-server-netty:$ktor_version"
+    }
+}
+
 // For 'demo', which may need to interact with web servers, configure:
 project('demo') {
     dependencies {
         implementation "io.ktor:ktor-client-core:$ktor_version"
         implementation "io.ktor:ktor-client-cio:$ktor_version"
-    }
-}
-
-// For 'client', which needs to run a web server as a public interface, configure:
-project('client') {
-    dependencies {
-        implementation "io.ktor:ktor-server-netty:$ktor_version"
     }
 }
 

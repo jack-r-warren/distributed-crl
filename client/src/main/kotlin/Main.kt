@@ -12,7 +12,7 @@ import io.ktor.server.netty.Netty
 fun main(args: Array<String>) = ClientMain.main(args)
 
 object ClientMain : CommandLineBase() {
-  private val webPort: Int by option().int().required()
+  private val webPort: Int by option("--port", "-p").int().required()
 
   override fun run() = runProtocolServer(
     discoveryServer = discoveryNetworkIdentity,
