@@ -40,7 +40,7 @@ open class ParticipantRoleServer(
     from: Dcrl.Certificate
   ): Dcrl.DCRLMessage? =
     StringBuilder().let { errorCollector ->
-      if (message.certificate.verifyVerbose(
+      if (!message.certificate.verifyVerbose(
           { errorCollector.append(it) },
           trustStore::get,
           currentRevokedList::containsKey,
@@ -62,7 +62,7 @@ open class ParticipantRoleServer(
     from: Dcrl.Certificate
   ): Dcrl.DCRLMessage? {
     otherParticipantsAndAuthorities.add(identity)
-    println("Hello new participant or authority at $identity")
+    println("Hello new participant or authority at $identity (now have ${otherParticipantsAndAuthorities.size})")
     return null
   }
 

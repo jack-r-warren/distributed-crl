@@ -21,6 +21,7 @@ class AuthorityRoleServer(
             throw e
           }
         }.let { cert ->
+          println("Making revocation message")
           Dcrl.DCRLMessage.newBuilder().apply {
             signedMessageBuilder.apply {
               certificate = selfCertificate
@@ -30,13 +31,15 @@ class AuthorityRoleServer(
                 certificateRevocation = it
                 signature = Util.sign(it, selfPrivateKey)
               }
+              println("Finished with revocation message")
             }
           }
         }.build().let { wrappedMsg ->
-          sendMessageToIdentity(otherParticipantsAndAuthorities.random(), wrappedMsg)
+          sendMessageToIdentity(otherParticipantsAndAuthorities.random().also { println("Started revocation with $it") }, wrappedMsg)
         }
     } catch (e: Throwable) {
       println("$e")
+      return RevocationResponse.REVOCATION_REJECTED
     }
     return RevocationResponse.REVOCATION_STARTED
   }

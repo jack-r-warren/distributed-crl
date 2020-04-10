@@ -5,9 +5,11 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
   protected final Dcrl.Certificate selfCertificate;
@@ -51,8 +53,6 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
                                         @NotNull Dcrl.CertificateRevocation message,
                                         @NotNull Dcrl.Certificate from) {
 
-    System.out.println("Started");
-
     StringBuilder errorCollector = new StringBuilder();
     Consumer<String> errorConsumer = errorCollector::append;
 
@@ -62,12 +62,12 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
         ((ByteString bytes) -> getCurrentRevokedList().containsKey(bytes)),
         Dcrl.CertificateUsage.AUTHORITY
     )) {
-      if (errorCollector.toString().contains("trusted")) getTrustStore().forEach((hash, cert) -> System.out.println(hash));
+      if (errorCollector.toString().contains("trusted"))
+        getTrustStore().forEach((hash, cert) -> System.out.println(hash));
       return ProtocolServerUtil.buildErrorMessage("Bad revocation for certificate for " + from.getSubject() + "! " + errorCollector.toString(), selfCertificate, selfPrivateKey);
     }
 
-    if (message.getCertificate().getIssuerCertificateHash() == Util.hash(from))
-    {
+    if (message.getCertificate().getIssuerCertificateHash() == Util.hash(from)) {
       return ProtocolServerUtil.buildErrorMessage("Not from the right person!", selfCertificate, selfPrivateKey);
     }
 
@@ -75,7 +75,6 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
     System.out.println("Added revocation, now storing " + this.revocationsToProcess.size());
 
     if (this.revocationsToProcess.size() == this.revocationsPerBlock) {
-      System.out.println("Reached amount");
 
       Dcrl.BlockMessage blockMessage = Dcrl.BlockMessage.newBuilder()
           .setCertificate(this.selfCertificate)
@@ -85,6 +84,12 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
           .setMerkleRoot(ByteString.copyFrom(Util.merkleRoot(this.revocationsToProcess)))
           .addAllCertificateRevocations(this.revocationsToProcess)
           .build();
+
+      this.blockchain.add(blockMessage);
+      for (Dcrl.CertificateRevocation revocation :
+          this.revocationsToProcess) {
+        this.getCurrentRevokedList().put(Util.hashCert(revocation.getCertificate()), revocation.getCertificate());
+      }
 
       Dcrl.DCRLMessage messageToSend = Dcrl.DCRLMessage.newBuilder()
           .setSignedMessage(
@@ -96,12 +101,11 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
           .build();
 
       this.lastValidatedHeight += 1;
-      this.lastValidatedHash = Util.sign(blockMessage, this.selfPrivateKey);
+      this.lastValidatedHash = Util.hash(blockMessage);
 
       // need to flood messageToSend
       for (NetworkIdentity server : this.otherParticipantsAndAuthorities) {
         sendMessageToIdentity(server, messageToSend);
-        System.out.println("Sent to " + server);
       }
       this.revocationsToProcess.clear();
     }
@@ -133,6 +137,10 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
           this.selfCertificate,
           this.selfPrivateKey);
     }
+
+    System.out.println("Heights:");
+    System.out.println(message.getHeight());
+    System.out.println(this.lastValidatedHeight);
 
     // check height
     if (message.getHeight() <= this.lastValidatedHeight) {
@@ -200,15 +208,13 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
   public Dcrl.DCRLMessage handleMessage(@NotNull NetworkIdentity identity, @NotNull Dcrl.BlockchainRequest message) {
     Dcrl.BlockchainResponse blockchainResponse = Dcrl.BlockchainResponse.newBuilder().addAllBlocks(this.blockchain).build();
 
-    Dcrl.DCRLMessage response = Dcrl.DCRLMessage.newBuilder()
+    return Dcrl.DCRLMessage.newBuilder()
         .setSignedMessage(
             Dcrl.SignedMessage.newBuilder()
                 .setCertificate(this.selfCertificate)
                 .setSignature(Util.sign(blockchainResponse, this.selfPrivateKey))
                 .setBlockchainResponse(blockchainResponse))
         .build();
-
-    return response;
   }
 
   /**
@@ -229,6 +235,16 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
     }
 
     this.blockchain = message.getBlocksList();
+
+    System.out.println(this.blockchain.size());
+    this.getCurrentRevokedList().clear();
+    for (Dcrl.BlockMessage block :
+        this.blockchain) {
+      for (Dcrl.CertificateRevocation revocation :
+          block.getCertificateRevocationsList()) {
+        this.getCurrentRevokedList().put(Util.hashCert(revocation.getCertificate()), revocation.getCertificate());
+      }
+    }
     return null;
   }
 
@@ -281,15 +297,26 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
           ((ByteString bytes) -> getTrustStore().get(bytes)),
           ((ByteString bytes) -> getCurrentRevokedList().containsKey(bytes)),
           Dcrl.CertificateUsage.PARTICIPATION
-      )) return false;
+      )) {
+        System.out.println(errorPrinter.toString());
+        return false;
+      }
 
-      if (prevBlockPrevHash != blockPrevHash) {
+      if (!prevBlockPrevHash.equals(blockPrevHash)) {
+        System.out.println("Hashes didn't match: previous block hash should have been ");
+        System.out.println(prevBlockPrevHash);
+        System.out.println("but instead was");
+        System.out.println(blockPrevHash);
         return false;
       }
 
       if (prevBlockHeight + 1 != blockHeight) {
+        System.out.println("Height didn't match");
         return false;
       }
+
+      prevBlockPrevHash = Util.hash(block);
+      prevBlockHeight++;
     }
     return true;
   }

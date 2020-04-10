@@ -8,6 +8,7 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import java.io.File
 
 fun main(args: Array<String>) = ClientMain.main(args)
 
@@ -17,8 +18,7 @@ object ClientMain : SignerCommandLineBase() {
   override fun run() = runProtocolServer(
     discoveryServer = discoveryNetworkIdentity,
     trustStoreDirectory = trustStoreDirectory,
-    // Method reference syntax, used here to reference a constructor
-    protocolServerFactory = { otherServers, trustStore ->
+    protocolServerFactory = { otherServers: MutableMap<NetworkIdentity, SocketTuple>, trustStore: File ->
       AuthorityRoleServer(otherServers, trustStore, selfCertificate, selfPrivateKey)
     },
     callbackWithConfiguredServer = ::runWebInterface

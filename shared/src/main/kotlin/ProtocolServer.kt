@@ -2,13 +2,19 @@ import Util.hashCert
 import com.google.protobuf.ByteString
 import com.google.protobuf.Message
 import io.ktor.network.sockets.isClosed
+import kotlinx.coroutines.withTimeoutOrNull
 import org.apache.commons.codec.binary.Base64
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.time.seconds
 
 abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, SocketTuple>, trustStorePath: File) {
   val trustStore: Map<ByteString, Dcrl.Certificate> = readTrustStore(trustStorePath).map {
     hashCert(it) to it
   }.toMap()
+
+  val toSendTo = ConcurrentHashMap<NetworkIdentity, ConcurrentLinkedQueue<Dcrl.DCRLMessage>>()
 
   protected val currentRevokedList = HashMap<ByteString, Dcrl.Certificate>()
 
@@ -34,7 +40,9 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
   Socket stuff
    */
 
-  open fun callbackUponConfigured(): Unit { return }
+  open fun callbackUponConfigured(): Unit {
+    return
+  }
 
   // Helper function to send some message to some identity
   fun sendMessageToIdentity(identity: NetworkIdentity, message: Dcrl.DCRLMessage): Unit {
@@ -57,6 +65,7 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
       println("Error bubbled up to socket handling, so the socket ($identity) was closed.")
       println(e)
     } finally {
+      println("Removing $identity")
       kotlin.runCatching { if (!socket.isClosed) socket.close() }
       otherServers.remove(identity)
     }
