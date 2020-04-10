@@ -27,9 +27,7 @@ class AuthorityRoleServer(
         builder.signature = ByteString.copyFrom(sign(builder.build(), selfPrivateKey))
         builder.build()
       }.let { signedMsg ->
-        this.otherServers.values.forEach { tuple: SocketTuple ->
-          tuple.outputStream.write(signedMsg.toByteArray())
-        }
+        this.otherServers.values.random().outputStream.write(signedMsg.toByteArray())
       }
 
     return RevocationResponse.REVOCATION_STARTED
