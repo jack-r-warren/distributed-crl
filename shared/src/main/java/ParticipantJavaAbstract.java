@@ -256,6 +256,7 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
   public Dcrl.DCRLMessage handleMessage(@NotNull NetworkIdentity identity,
                                         @NotNull Dcrl.ErrorMessage message,
                                         @Nullable Dcrl.Certificate from) {
+    System.out.println("got error" + message.getError());
     System.out.println(message.getError());
     return null;
   }

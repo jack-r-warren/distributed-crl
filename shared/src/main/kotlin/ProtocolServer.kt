@@ -2,7 +2,7 @@ import Util.hashCert
 import com.google.protobuf.ByteString
 import com.google.protobuf.Message
 import io.ktor.network.sockets.isClosed
-import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.*
 import org.apache.commons.codec.binary.Base64
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -56,6 +56,11 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
     try {
       // Receive messages and send any non-null outputs of the handleMessage function
       while (true) {
+//        while (socket.inputStream.available() == 0) {
+//          runBlocking { delay(10) }
+//          println("waiting on input ${socket.remoteAddress}")
+//        }
+        println("There's something in the socket!")
         handleMessage(
           identity,
           Dcrl.DCRLMessage.parseDelimitedFrom(socket.inputStream).also { println("Received $it") }
