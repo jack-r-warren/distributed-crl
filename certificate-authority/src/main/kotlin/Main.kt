@@ -31,7 +31,7 @@ object ClientMain : SignerCommandLineBase() {
         get("/") {
           call.respondText(
             """
-Go to /check/{hash} to check the validity of a certificate\n
+Go to /check/{hash} to check the validity of a certificate<br>
 Go to /revoke/{cert} to revoke a certificate
           """.trimIndent(), ContentType.Text.Html
           )

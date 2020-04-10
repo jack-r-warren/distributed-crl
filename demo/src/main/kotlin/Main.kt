@@ -32,13 +32,10 @@ object Query : CliktCommand() {
   private val serverAddress by argument(help = "The IP address of the server to communicate to")
   private val certPath by argument(help = "The path to the cert to check")
   override fun run() {
-    println("Gonna query: read from file")
     val cert = Dcrl.Certificate.parseFrom(readFile(certPath))
-    println("Gonna query: encode the bytes")
     val hashHexString = Base64().encode(Util.hashCert(cert))
-    println("Gonna query: gotta go fast")
     runBlocking {
-      echo(HttpClient().get("$serverAddress/check/$hashHexString"))
+      echo(HttpClient().get("http://$serverAddress/check/$hashHexString"))
     }
   }
 
@@ -149,7 +146,7 @@ object Revoke : CliktCommand() {
   override fun run() {
     val fileHashString = Base64().encodeAsString(readFile(certPath))
     runBlocking {
-      echo(HttpClient().get("$serverAddress/revoke/$fileHashString"))
+      echo(HttpClient().get("http://$serverAddress/revoke/$fileHashString"))
     }
   }
 
