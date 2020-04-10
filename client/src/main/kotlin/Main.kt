@@ -33,8 +33,10 @@ object ClientMain : CommandLineBase() {
         }
         get("/check/{hash}") {
           call.parameters["hash"].let {
-            if (it != null && it.isNotEmpty())
+            if (it != null && it.isNotEmpty()) {
+              server.requestBlockchain()
               call.respondText(ContentType.Text.Html) { server.checkCertificate(it).name }
+            }
             else
               call.respondText("No certificate hash given as a parameter", ContentType.Text.Html)
           }

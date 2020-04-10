@@ -56,15 +56,11 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
     try {
       // Receive messages and send any non-null outputs of the handleMessage function
       while (true) {
-//        while (socket.inputStream.available() == 0) {
-//          runBlocking { delay(10) }
-//          println("waiting on input ${socket.remoteAddress}")
-//        }
         println("There's something in the socket!")
         handleMessage(
           identity,
-          Dcrl.DCRLMessage.parseDelimitedFrom(socket.inputStream).also { println("Received $it") }
-        ).also { println("Sent $it") }?.writeDelimitedTo(socket.outputStream)
+          Dcrl.DCRLMessage.parseDelimitedFrom(socket.inputStream).also { println("Received $it from ${socket.remoteAddress}") }
+        ).also { println("Sent $it to ${socket.remoteAddress}") }?.writeDelimitedTo(socket.outputStream)
       }
     } catch (e: Throwable) {
       println("Error bubbled up to socket handling, so the socket ($identity) was closed.")
@@ -102,8 +98,9 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
   private fun failOnNull(message: Message): Nothing =
     throw IllegalArgumentException("Message case in $message was null")
 
-  fun handleMessage(identity: NetworkIdentity, message: Dcrl.DCRLMessage): Dcrl.DCRLMessage? =
-    when (message.messageCase) {
+  fun handleMessage(identity: NetworkIdentity, message: Dcrl.DCRLMessage): Dcrl.DCRLMessage?  {
+    println("got some message, trying to decrypt")
+    return when (message.messageCase) {
       Dcrl.DCRLMessage.MessageCase.UNSIGNED_MESSAGE -> handleMessage(identity, message.unsignedMessage)
       Dcrl.DCRLMessage.MessageCase.SIGNED_MESSAGE -> {
         println("Called the handle for the signed")
@@ -112,6 +109,7 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
       Dcrl.DCRLMessage.MessageCase.MESSAGE_NOT_SET -> failOnNotSet(message)
       null -> failOnNull(message)
     }
+  }
 
   fun handleMessage(identity: NetworkIdentity, message: Dcrl.UnsignedMessage): Dcrl.DCRLMessage? =
     when (message.messageCase) {
@@ -131,39 +129,54 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
   ): Dcrl.DCRLMessage?
 
   fun handleMessage(identity: NetworkIdentity, message: Dcrl.SignedMessage): Dcrl.DCRLMessage? =
-    if (!Util.verify(message)) ProtocolServerUtil.buildErrorMessage("Bad signing")
-    else when (message.messageCase) {
-      Dcrl.SignedMessage.MessageCase.CERTIFICATE_REVOCATION -> {
-        println("About to call for the revocation")
-        handleMessage(
+    if (!Util.verify(message)) {
+      println("bad signature")
+      ProtocolServerUtil.buildErrorMessage("Bad signing")
+    }
+    else {
+      println("delegating message")
+      when (message.messageCase) {
+        Dcrl.SignedMessage.MessageCase.CERTIFICATE_REVOCATION -> {
+          println("About to call for the revocation")
+          handleMessage(
+            identity,
+            message.certificateRevocation,
+            message.certificate
+          )
+        }
+        Dcrl.SignedMessage.MessageCase.BLOCK_MESSAGE -> handleMessage(
           identity,
-          message.certificateRevocation,
+          message.blockMessage,
           message.certificate
         )
+        Dcrl.SignedMessage.MessageCase.BLOCKCHAIN_RESPONSE -> {
+          println("reached blockchain resp block")
+          handleMessage(
+            identity,
+            message.blockchainResponse,
+            message.certificate
+          )
+        }
+        Dcrl.SignedMessage.MessageCase.BLOCK_RESPONSE -> handleMessage(
+          identity,
+          message.blockResponse,
+          message.certificate
+        )
+        Dcrl.SignedMessage.MessageCase.ERROR_MESSAGE -> handleMessage(
+          identity,
+          message.errorMessage,
+          message.certificate
+        )
+        Dcrl.SignedMessage.MessageCase.ANNOUNCE -> handleMessage(identity, message.announce, message.certificate)
+        Dcrl.SignedMessage.MessageCase.MESSAGE_NOT_SET -> {
+          println("msg case not set")
+          failOnNotSet(message)
+        }
+        null -> {
+          println("??? got null")
+          failOnNull(message)
+        }
       }
-      Dcrl.SignedMessage.MessageCase.BLOCK_MESSAGE -> handleMessage(
-        identity,
-        message.blockMessage,
-        message.certificate
-      )
-      Dcrl.SignedMessage.MessageCase.BLOCKCHAIN_RESPONSE -> handleMessage(
-        identity,
-        message.blockchainResponse,
-        message.certificate
-      )
-      Dcrl.SignedMessage.MessageCase.BLOCK_RESPONSE -> handleMessage(
-        identity,
-        message.blockResponse,
-        message.certificate
-      )
-      Dcrl.SignedMessage.MessageCase.ERROR_MESSAGE -> handleMessage(
-        identity,
-        message.errorMessage,
-        message.certificate
-      )
-      Dcrl.SignedMessage.MessageCase.ANNOUNCE -> handleMessage(identity, message.announce, message.certificate)
-      Dcrl.SignedMessage.MessageCase.MESSAGE_NOT_SET -> failOnNotSet(message)
-      null -> failOnNull(message)
     }
 
   abstract fun handleMessage(

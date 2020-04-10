@@ -146,7 +146,7 @@ object Revoke : CliktCommand() {
   override fun run() {
     val fileHashString = Base64.encodeBase64URLSafeString(readFile(certPath))
     runBlocking {
-      echo(HttpClient().get("http://$serverAddress/revoke/$fileHashString"))
+      echo(HttpClient().get<String>("http://$serverAddress/revoke/$fileHashString"))
     }
   }
 

@@ -27,10 +27,9 @@ public class ObserverRoleServer extends ProtocolServer {
                             @NotNull List<NetworkIdentity> preferenceList) {
     super(otherServers, trustStore);
     this.preferenceList = preferenceList;
-    this.blockchain = new ArrayList<Dcrl.BlockMessage>();
+    this.blockchain = new ArrayList<>();
     this.timestamp = 0;
   }
-
 
   public ObserverRoleServer(@NotNull Map<NetworkIdentity, SocketTuple> otherServers, @NotNull File trustStore) {
     this(otherServers, trustStore, new ArrayList<NetworkIdentity>());
@@ -51,6 +50,7 @@ public class ObserverRoleServer extends ProtocolServer {
    */
   public void requestBlockchain(NetworkIdentity server) {
     // build the request
+    System.out.println("Sending request to " + server.getIpAddress() + ":" + server.getPortNumber());
     Dcrl.DCRLMessage request = Dcrl.DCRLMessage.newBuilder()
         .setUnsignedMessage(
             Dcrl.UnsignedMessage.newBuilder()
@@ -89,6 +89,8 @@ public class ObserverRoleServer extends ProtocolServer {
                                         @NotNull Dcrl.BlockchainResponse message,
                                         @NotNull Dcrl.Certificate from) {
     List<Dcrl.BlockMessage> response = message.getBlocksList();
+
+    System.out.println("got a message back");
 
     // error checking before updating this.blockchain
     if (response.isEmpty()) {
@@ -145,6 +147,7 @@ public class ObserverRoleServer extends ProtocolServer {
   @Nullable
   @Override
   public Dcrl.DCRLMessage handleMessage(@NotNull NetworkIdentity identity, @NotNull Dcrl.BlockchainRequest message) {
+    System.out.println("wtf");
     return ProtocolServerUtil.buildErrorMessage(
         String.format("Message type %s not supported.", message.getClass().toString())
     );
