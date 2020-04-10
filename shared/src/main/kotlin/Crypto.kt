@@ -6,6 +6,7 @@ import com.sun.jna.Pointer
 import java.time.Instant
 
 fun ByteArray.sign(secretKey: ByteArray) = let { input ->
+  println("Started Signing")
   (LazySodiumJava(SodiumJava()) as Sign.Native).run {
     Sign.StateCryptoSign().let { state ->
       cryptoSignInit(state)
@@ -15,7 +16,7 @@ fun ByteArray.sign(secretKey: ByteArray) = let { input ->
       }
     }
   }
-}
+}.also { println("Done signing") }
 
 fun ByteArray.verifySign(sign: ByteArray, publicKey: ByteArray) = let { input ->
   (LazySodiumJava(SodiumJava()) as Sign.Native).run {

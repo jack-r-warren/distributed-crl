@@ -1,4 +1,3 @@
-import Util.sign
 import com.google.protobuf.ByteString
 import org.apache.commons.codec.binary.Base64
 import java.io.File
@@ -12,26 +11,33 @@ class AuthorityRoleServer(
   ParticipantRoleServer(otherServers, trustStore, selfCertificate, selfPrivateKey) {
 
   fun revokeCertificate(encodedCert: String): RevocationResponse {
-    Base64.decodeBase64(encodedCert)
-      .let { certBytes ->
-        try {
-          Dcrl.Certificate.parseFrom(certBytes)
-        } catch (e: Exception) {
-          return RevocationResponse.REVOCATION_REJECTED
+    try {
+      Base64.decodeBase64(encodedCert)
+        .let { certBytes ->
+          try {
+            Dcrl.Certificate.parseFrom(certBytes)
+          } catch (e: Exception) {
+            println("Couldn't parse certificate")
+            throw e
+          }
+        }.let { cert ->
+          Dcrl.DCRLMessage.newBuilder().apply {
+            signedMessageBuilder.apply {
+              certificate = selfCertificate
+              Dcrl.CertificateRevocation.newBuilder().apply {
+                certificate = cert
+              }.build().let {
+                certificateRevocation = it
+                signature = ByteString.copyFrom(Util.sign(it, selfPrivateKey))
+              }
+            }
+          }
+        }.build().let { wrappedMsg ->
+          sendMessageToIdentity(otherParticipantsAndAuthorities.random(), wrappedMsg.also { println(it) })
         }
-      }.let { cert ->
-        Dcrl.CertificateRevocation.newBuilder().setCertificate(cert).build()
-      }.let { revokeMsg ->
-        val builder =
-          Dcrl.SignedMessage.newBuilder().setCertificate(selfCertificate).setCertificateRevocation(revokeMsg)
-        builder.signature = ByteString.copyFrom(sign(builder.build(), selfPrivateKey))
-        builder.build()
-      }.let { signedMessage ->
-        Dcrl.DCRLMessage.newBuilder().setSignedMessage(signedMessage).build()
-      }.let { wrappedMsg ->
-        sendMessageToIdentity(otherParticipantsAndAuthorities.random(), wrappedMsg)
-      }
-
+    } catch (e: Throwable) {
+      println(e)
+    }
     return RevocationResponse.REVOCATION_STARTED
   }
 

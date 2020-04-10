@@ -1,6 +1,7 @@
 import com.google.protobuf.ByteString
 import java.io.File
 import java.security.SecureRandom
+import kotlin.random.Random
 
 open class ParticipantRoleServer(
   otherServers: MutableMap<NetworkIdentity, SocketTuple>,
@@ -13,20 +14,27 @@ open class ParticipantRoleServer(
   // This block gets called during construction. [otherServers] and the superclass helper [sendMessageToIdentity] will
   // both already be good to go here, so we'll want to use this place to send out our Announce messages to the other
   // servers.
-  init {
+  override fun callbackUponConfigured() {
+    println("Started")
     Dcrl.DCRLMessage.newBuilder().apply {
       signedMessageBuilder.apply {
         certificate = selfCertificate
         Dcrl.Announce.newBuilder().apply {
-          nonce = SecureRandom.getInstanceStrong().nextLong()
+          nonce = Random.nextLong()
         }.build().let {
+          println("Announce made")
           announce = it
           signature = ByteString.copyFrom(Util.sign(it, selfPrivateKey))
         }
       }
     }.build().let { message ->
-      otherParticipantsAndAuthorities.forEach { sendMessageToIdentity(it, message) }
+      println("About to send")
+      otherParticipantsAndAuthorities.forEach {
+        sendMessageToIdentity(it, message)
+        println("Sent announce to $it")
+      }
     }
+    println("Started")
   }
 
   override fun handleMessage(

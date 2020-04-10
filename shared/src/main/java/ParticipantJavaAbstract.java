@@ -90,6 +90,7 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
       for (NetworkIdentity server : this.otherParticipantsAndAuthorities) {
         sendMessageToIdentity(server, messageToSend);
       }
+      this.revocationsToProcess.clear();
     }
     return null;
   }

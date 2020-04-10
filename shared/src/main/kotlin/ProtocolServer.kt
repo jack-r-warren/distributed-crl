@@ -33,6 +33,8 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
   Socket stuff
    */
 
+  open fun callbackUponConfigured(): Unit { return }
+
   // Helper function to send some message to some identity
   fun sendMessageToIdentity(identity: NetworkIdentity, message: Dcrl.DCRLMessage): Unit {
     otherServers[identity]?.let { socket ->
@@ -47,7 +49,7 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
       while (true) {
         handleMessage(
           identity,
-          Dcrl.DCRLMessage.parseDelimitedFrom(socket.inputStream)
+          Dcrl.DCRLMessage.parseDelimitedFrom(socket.inputStream).also { println(it) }
         )?.writeDelimitedTo(socket.outputStream)
       }
     } catch (e: Throwable) {

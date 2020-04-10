@@ -97,14 +97,9 @@ fun <T : ProtocolServer> runProtocolServer(
         }
         println("Connected to existing other servers")
 
-        callbackWithConfiguredServer?.let {
-          try {
-            launch { it.invoke(protocolServer) }
-          } catch (e: Throwable) {
-            println("Callback ended with exception $e")
-          }
-          println("Launched callback")
-        }
+        launch { protocolServer.callbackUponConfigured() }
+
+        if (callbackWithConfiguredServer != null) launch { callbackWithConfiguredServer(protocolServer) }
 
         // Listen for any future connections, accept each as a socket
         while (true) SocketTuple(serverSocket.accept()).let { socket ->

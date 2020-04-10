@@ -45,11 +45,11 @@ Go to /revoke/{cert} to revoke a certificate
           }
         }
         get("/revoke/{cert}") {
-          call.parameters["hash"].let {
+          call.parameters["cert"].let {
             if (it != null && it.isNotEmpty())
               call.respondText(ContentType.Text.Html) { server.revokeCertificate(it).name }
             else
-              call.respondText("No certificate hash given as a parameter", ContentType.Text.Html)
+              call.respondText("No certificate given as a parameter", ContentType.Text.Html)
           }
         }
       }
