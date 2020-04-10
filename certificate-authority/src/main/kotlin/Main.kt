@@ -15,14 +15,16 @@ fun main(args: Array<String>) = ClientMain.main(args)
 object ClientMain : SignerCommandLineBase() {
   private val webPort by option("--port", "-p").int().required()
 
-  override fun run() = runProtocolServer(
-    discoveryServer = discoveryNetworkIdentity,
-    trustStoreDirectory = trustStoreDirectory,
-    protocolServerFactory = { otherServers: MutableMap<NetworkIdentity, SocketTuple>, trustStore: File ->
-      AuthorityRoleServer(otherServers, trustStore, selfCertificate, selfPrivateKey)
-    },
-    callbackWithConfiguredServer = ::runWebInterface
-  )
+  override fun run() {
+      runProtocolServer(
+          discoveryServer = discoveryNetworkIdentity,
+          trustStoreDirectory = trustStoreDirectory,
+          protocolServerFactory = { otherServers: MutableMap<NetworkIdentity, SocketTuple>, trustStore: File ->
+              AuthorityRoleServer(otherServers, trustStore, selfCertificate, selfPrivateKey)
+          },
+          callbackWithConfiguredServer = ::runWebInterface
+      )
+  }
 
   private fun runWebInterface(server: AuthorityRoleServer): Unit {
     println("Running web server")

@@ -8,6 +8,9 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 fun main(args: Array<String>) = ClientMain.main(args)
 
@@ -27,6 +30,13 @@ object ClientMain : CommandLineBase() {
   private fun runWebInterface(server: ObserverRoleServer): Unit {
     println("Running web server")
 
+    GlobalScope.launch {
+      while (true) {
+        delay(1000)
+        server.requestBlockchain()
+      }
+    }
+    
     embeddedServer(CIO, webPort) {
       routing {
         get("/") {
