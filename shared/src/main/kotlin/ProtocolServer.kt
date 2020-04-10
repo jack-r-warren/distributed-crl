@@ -49,8 +49,8 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
       while (true) {
         handleMessage(
           identity,
-          Dcrl.DCRLMessage.parseDelimitedFrom(socket.inputStream).also { println(it) }
-        )?.writeDelimitedTo(socket.outputStream)
+          Dcrl.DCRLMessage.parseDelimitedFrom(socket.inputStream).also { println("Received $it") }
+        ).also { println("Sent $it") }?.writeDelimitedTo(socket.outputStream)
       }
     } catch (e: Throwable) {
       println("Error bubbled up to socket handling, so the socket ($identity) was closed.")
@@ -90,7 +90,10 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
   fun handleMessage(identity: NetworkIdentity, message: Dcrl.DCRLMessage): Dcrl.DCRLMessage? =
     when (message.messageCase) {
       Dcrl.DCRLMessage.MessageCase.UNSIGNED_MESSAGE -> handleMessage(identity, message.unsignedMessage)
-      Dcrl.DCRLMessage.MessageCase.SIGNED_MESSAGE -> handleMessage(identity, message.signedMessage)
+      Dcrl.DCRLMessage.MessageCase.SIGNED_MESSAGE -> {
+        println("Called the handle for the signed")
+        handleMessage(identity, message.signedMessage)
+      }
       Dcrl.DCRLMessage.MessageCase.MESSAGE_NOT_SET -> failOnNotSet(message)
       null -> failOnNull(message)
     }
@@ -115,11 +118,14 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
   fun handleMessage(identity: NetworkIdentity, message: Dcrl.SignedMessage): Dcrl.DCRLMessage? =
     if (!Util.verify(message)) ProtocolServerUtil.buildErrorMessage("Bad signing")
     else when (message.messageCase) {
-      Dcrl.SignedMessage.MessageCase.CERTIFICATE_REVOCATION -> handleMessage(
-        identity,
-        message.certificateRevocation,
-        message.certificate
-      )
+      Dcrl.SignedMessage.MessageCase.CERTIFICATE_REVOCATION -> {
+        println("About to call for the revocation")
+        handleMessage(
+          identity,
+          message.certificateRevocation,
+          message.certificate
+        )
+      }
       Dcrl.SignedMessage.MessageCase.BLOCK_MESSAGE -> handleMessage(
         identity,
         message.blockMessage,

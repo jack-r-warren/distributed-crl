@@ -52,14 +52,22 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
                                         @NotNull Dcrl.CertificateRevocation message,
                                         @NotNull Dcrl.Certificate from) {
 
+    System.out.println("Started");
+
     if (!CryptoKt.verify(from,
         ((byte[] bytes) -> getTrustStore().get(bytes)),
         ((byte[] bytes) -> getCurrentRevokedList().containsKey(bytes)),
         Dcrl.CertificateUsage.AUTHORITY
-    )) return ProtocolServerUtil.buildErrorMessage("Bad revocation!", selfCertificate, selfPrivateKey);
+    )) {
+      System.out.println("Going to send an error");
+      return ProtocolServerUtil.buildErrorMessage("Bad revocation!", selfCertificate, selfPrivateKey);
+    }
 
     if (message.getCertificate().getIssuerCertificateHash().toByteArray() == Util.hash(from))
+    {
+      System.out.println("Going to send an error 2");
       return ProtocolServerUtil.buildErrorMessage("Not from the right person!", selfCertificate, selfPrivateKey);
+    }
 
     this.revocationsToProcess.add(message);
     System.out.println("Added revocation, now storing " + this.revocationsToProcess.size());
@@ -91,6 +99,7 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
       // need to flood messageToSend
       for (NetworkIdentity server : this.otherParticipantsAndAuthorities) {
         sendMessageToIdentity(server, messageToSend);
+        System.out.println("Sent to " + server);
       }
       this.revocationsToProcess.clear();
     }

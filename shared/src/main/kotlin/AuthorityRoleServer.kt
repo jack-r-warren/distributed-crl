@@ -33,10 +33,10 @@ class AuthorityRoleServer(
             }
           }
         }.build().let { wrappedMsg ->
-          sendMessageToIdentity(otherParticipantsAndAuthorities.random(), wrappedMsg.also { println(it) })
+          sendMessageToIdentity(otherParticipantsAndAuthorities.random(), wrappedMsg)
         }
     } catch (e: Throwable) {
-      println(e)
+      println("$e")
     }
     return RevocationResponse.REVOCATION_STARTED
   }

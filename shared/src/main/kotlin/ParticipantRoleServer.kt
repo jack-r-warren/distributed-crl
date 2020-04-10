@@ -1,6 +1,5 @@
 import com.google.protobuf.ByteString
 import java.io.File
-import java.security.SecureRandom
 import kotlin.random.Random
 
 open class ParticipantRoleServer(
@@ -15,20 +14,18 @@ open class ParticipantRoleServer(
   // both already be good to go here, so we'll want to use this place to send out our Announce messages to the other
   // servers.
   override fun callbackUponConfigured() {
-    println("Started")
     Dcrl.DCRLMessage.newBuilder().apply {
       signedMessageBuilder.apply {
         certificate = selfCertificate
         Dcrl.Announce.newBuilder().apply {
           nonce = Random.nextLong()
         }.build().let {
-          println("Announce made")
+          println("Preparing to announce self")
           announce = it
           signature = ByteString.copyFrom(Util.sign(it, selfPrivateKey))
         }
       }
     }.build().let { message ->
-      println("About to send")
       otherParticipantsAndAuthorities.forEach {
         sendMessageToIdentity(it, message)
         println("Sent announce to $it")
@@ -59,6 +56,6 @@ open class ParticipantRoleServer(
   ): Dcrl.DCRLMessage? {
     otherParticipantsAndAuthorities.add(identity)
     println("Hello new participant or authority at $identity")
-    return null
+    return ProtocolServerUtil.buildErrorMessage("Hi here's an error")
   }
 }
