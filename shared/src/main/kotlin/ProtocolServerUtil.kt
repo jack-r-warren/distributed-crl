@@ -44,8 +44,13 @@ fun <T : ProtocolServer> runProtocolServer(
   callbackWithConfiguredServer: ((T) -> Unit)? = null
 ): Unit {
   runBlocking {
+
+    println("Hello from a coroutine scope")
+
     // Make the server socket
     val serverSocket = aSocket(ActorSelectorManager(Dispatchers.IO)).tcp().bind()
+
+    println("Server socket created")
 
     // Compute the server's port as late as possible (but keep track of it in case something happens)
     val serverSocketPort by lazy { (serverSocket.localAddress as InetSocketAddress).port }
