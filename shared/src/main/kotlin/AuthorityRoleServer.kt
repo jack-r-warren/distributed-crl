@@ -29,7 +29,7 @@ class AuthorityRoleServer(
       }.let { signedMessage ->
         Dcrl.DCRLMessage.newBuilder().setSignedMessage(signedMessage).build()
       }.let { wrappedMsg ->
-        this.otherServers.values.random().outputStream.write(wrappedMsg.toByteArray())
+        sendMessageToIdentity(otherParticipantsAndAuthorities.random(), wrappedMsg)
       }
 
     return RevocationResponse.REVOCATION_STARTED

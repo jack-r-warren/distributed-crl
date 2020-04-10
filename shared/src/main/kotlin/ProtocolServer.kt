@@ -36,7 +36,7 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
   // Helper function to send some message to some identity
   fun sendMessageToIdentity(identity: NetworkIdentity, message: Dcrl.DCRLMessage): Unit {
     otherServers[identity]?.let { socket ->
-      message.writeTo(socket.outputStream)
+      message.writeDelimitedTo(socket.outputStream)
     } ?: println("Was asked to send a message to $identity but it didn't exist in the otherServers map!")
   }
 
@@ -48,7 +48,7 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
         handleMessage(
           identity,
           Dcrl.DCRLMessage.parseDelimitedFrom(socket.inputStream)
-        )?.writeTo(socket.outputStream)
+        )?.writeDelimitedTo(socket.outputStream)
       }
     } catch (e: Throwable) {
       println("Error bubbled up to socket handling, so the socket ($identity) was closed.")

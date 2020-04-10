@@ -68,7 +68,7 @@ fun <T : ProtocolServer> runProtocolServer(
             true -> Discovery.Hello.newBuilder().apply { this.port = serverSocketPort }.build()
             false -> Discovery.Hello.getDefaultInstance()
           }
-        }.build().writeTo(discoverySocket.openWriteChannel(true).toOutputStream())
+        }.build().writeDelimitedTo(discoverySocket.openWriteChannel(true).toOutputStream())
 
         println("Sent to server")
 
@@ -118,7 +118,7 @@ fun <T : ProtocolServer> runProtocolServer(
               goodbye = Discovery.Goodbye.newBuilder().apply {
                 this.port = serverSocketPort
               }.build()
-            }.build().writeTo(discoverySocket.openWriteChannel(true).toOutputStream())
+            }.build().writeDelimitedTo(discoverySocket.openWriteChannel(true).toOutputStream())
           }
       }
 
