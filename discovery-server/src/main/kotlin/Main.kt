@@ -66,7 +66,10 @@ object DiscoveryServer : CliktCommand(help = "Run a discovery server to facilita
                   }.build().writeDelimitedTo(output)
 
                   message.hello.port.let {
-                    if (it > 0) serverSet.add(makeServer(remoteIP, it))
+                    if (it > 0)  {
+                      serverSet.add(makeServer(remoteIP, it))
+                      println("Added server at $remoteIP with port $it")
+                    }
                   }
                 }
                 // Upon GOODBYE, remove it from the set
@@ -74,8 +77,11 @@ object DiscoveryServer : CliktCommand(help = "Run a discovery server to facilita
                   // All protobuf fields optional and will be null if omitted, I'm using this here to let clients
                   // request servers without adding themselves to the list
                   @Suppress("UNNECESSARY_SAFE_CALL")
-                  message.goodbye.port?.let {
-                    serverSet.remove(makeServer(remoteIP, it))
+                  message.goodbye.port.let {
+                    if (it > 0) {
+                      serverSet.remove(makeServer(remoteIP, it))
+                      println("Removed server at $remoteIP with port $it")
+                    }
                   }
                 // If we can't parse, just print something
                 Discovery.FromClientMessage.MessageCase.MESSAGE_NOT_SET, null ->
