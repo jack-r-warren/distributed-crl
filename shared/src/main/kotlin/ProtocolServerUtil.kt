@@ -70,19 +70,26 @@ fun <T : ProtocolServer> runProtocolServer(
         }.toMap(mutableMapOf())
       }
 
+    println("Heard back from discovery server, ${otherServers.size} other servers found")
+
     try {
       protocolServerFactory(otherServers, trustStoreDirectory).let { protocolServer: T ->
         // For every server we know about, initiate a socket
         for ((identity, socket) in protocolServer.otherServers)
           launch { protocolServer.babysitSocket(identity, socket) }
+        println("Connected to existing other servers")
 
-        callbackWithConfiguredServer?.let { launch { it.invoke(protocolServer) } }
+        callbackWithConfiguredServer?.let {
+          launch { it.invoke(protocolServer) }
+          println("Launched callback")
+        }
 
         // Listen for any future connections, accept each as a socket
         while (true) SocketTuple(serverSocket.accept()).let { socket ->
           NetworkIdentity.from(socket).let { identity ->
             protocolServer.otherServers[identity] = socket
             launch { protocolServer.babysitSocket(identity, socket) }
+            println("Accepted a connection from $identity")
           }
         }
       }
