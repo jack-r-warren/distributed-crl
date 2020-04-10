@@ -114,8 +114,10 @@ fun <T : ProtocolServer> runProtocolServer(
         // Tell the discovery server that we are shutting down
         aSocket(ActorSelectorManager(Dispatchers.IO))
           .tcp().connect(discoveryServer).use { discoverySocket ->
-            Discovery.Goodbye.newBuilder().apply {
-              this.port = serverSocketPort
+            Discovery.FromClientMessage.newBuilder().apply {
+              goodbye = Discovery.Goodbye.newBuilder().apply {
+                this.port = serverSocketPort
+              }.build()
             }.build().writeTo(discoverySocket.openWriteChannel(true).toOutputStream())
           }
       }
