@@ -23,11 +23,12 @@ class AuthorityRoleServer(
         Dcrl.CertificateRevocation.newBuilder().setCertificate(cert).build()
       }.let { revokeMsg ->
         val builder = Dcrl.SignedMessage.newBuilder().setCertificate(selfCertificate).setCertificateRevocation(revokeMsg)
-
         builder.signature = ByteString.copyFrom(sign(builder.build(), selfPrivateKey))
         builder.build()
-      }.let { signedMsg ->
-        this.otherServers.values.random().outputStream.write(signedMsg.toByteArray())
+      }.let {signedMessage ->
+        Dcrl.DCRLMessage.newBuilder().setSignedMessage(signedMessage).build()
+      }.let { wrappedMsg ->
+          this.otherServers.values.random().outputStream.write(wrappedMsg.toByteArray())
       }
 
     return RevocationResponse.REVOCATION_STARTED
