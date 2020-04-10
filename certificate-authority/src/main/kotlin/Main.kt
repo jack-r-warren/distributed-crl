@@ -12,7 +12,7 @@ import io.ktor.server.netty.Netty
 fun main(args: Array<String>) = ClientMain.main(args)
 
 object ClientMain : SignerCommandLineBase() {
-  val webPort by option("--port", "-p").int().required()
+  private val webPort by option("--port", "-p").int().required()
 
   override fun run() = runProtocolServer(
     discoveryServer = discoveryNetworkIdentity,
@@ -32,7 +32,7 @@ object ClientMain : SignerCommandLineBase() {
           call.respondText(
             """
 Go to /check/{hash} to check the validity of a certificate
-Go to /revoke/{hash} to revoke a certificate
+Go to /revoke/{cert} to revoke a certificate
           """.trimIndent(), ContentType.Text.Html
           )
         }
@@ -41,10 +41,10 @@ Go to /revoke/{hash} to revoke a certificate
             call.respondText(ContentType.Text.Html) { server.checkCertificate(it).name }
           } ?: call.respondText("No certificate hash given as a parameter", ContentType.Text.Html)
         }
-        get("/revoke/{hash}") {
-          call.parameters["hash"]?.let {
+        get("/revoke/{cert}") {
+          call.parameters["cert"]?.let {
             call.respondText(ContentType.Text.Html) { server.revokeCertificate(it).name }
-          } ?: call.respondText("No certificate hash given as a parameter", ContentType.Text.Html)
+          } ?: call.respondText("No base64-encoded certificate given as a parameter", ContentType.Text.Html)
         }
       }
     }.start(wait = true)

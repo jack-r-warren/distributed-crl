@@ -17,7 +17,6 @@ public class ObserverRoleServer extends ProtocolServer {
     - a timestamp of when the last CRL was received
    */
 
-  Map<NetworkIdentity, SocketTuple> otherServers;
   List<NetworkIdentity> preferenceList;
   List<Dcrl.BlockMessage> blockchain;
   long timestamp;
@@ -27,7 +26,6 @@ public class ObserverRoleServer extends ProtocolServer {
                             @NotNull File trustStore,
                             @NotNull List<NetworkIdentity> preferenceList) {
     super(otherServers, trustStore);
-    this.otherServers = otherServers;
     this.preferenceList = preferenceList;
     this.blockchain = new ArrayList<Dcrl.BlockMessage>();
     this.timestamp = 0;
@@ -74,7 +72,7 @@ public class ObserverRoleServer extends ProtocolServer {
     if (this.preferenceList.size() > 0) {
       requestBlockchain(this.preferenceList.get(0));
     } else {
-      for (NetworkIdentity nt : this.otherServers.keySet()) {
+      for (NetworkIdentity nt : this.getOtherServers().keySet()) {
         requestBlockchain(nt);
         break;
       }
