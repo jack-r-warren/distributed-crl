@@ -25,7 +25,7 @@ const val SECRET_KEY_FILE_EXT = ".priv"
 const val PUB_KEY_FILE_EXT = ".pub"
 
 object Demo : CliktCommand() {
-  override fun run() { }
+  override fun run() {}
 }
 
 object Query : CliktCommand() {
@@ -53,8 +53,8 @@ object Query : CliktCommand() {
 }
 
 object Generate : CliktCommand() {
-  private val filename by argument(help="The subject the certificate is for")
-  private val overwrite by option ("-f", help = "Overwrite an existing file, if it exists").flag()
+  private val filename by argument(help = "The subject the certificate is for")
+  private val overwrite by option("-f", help = "Overwrite an existing file, if it exists").flag()
   private val valid_from by option("-t", help = "Epoch timestamp (seconds) of the starting valid time")
     .long()
     .default(Instant.now().epochSecond)
@@ -62,17 +62,21 @@ object Generate : CliktCommand() {
     .int()
     .default(300)
   private val usages by option("-u", help = "What usages should the generated certs have")
-    .choice("authority","participation")
+    .choice("authority", "participation")
     .multiple()
     .unique()
-  private val keypair_path by option("-p", help = "A path to the filenames of a public/private keypair to use. If not provided, one is generated")
+  private val keypair_path by option(
+    "-p",
+    help = "A path to the filenames of a public/private keypair to use. If not provided, one is generated"
+  )
   private val issuer_cert by option(
     "-i",
     help = "A path to a protobuf certificate file to use as the issuer. A $SECRET_KEY_FILE_EXT file must exist with the same name. If not provided, then the cert will be self-signed."
   )
 
   override fun run() {
-    val certBuilder = Certificate.newBuilder().setSubject(filename).setValidFrom(valid_from).setValidLength(valid_length)
+    val certBuilder =
+      Certificate.newBuilder().setSubject(filename).setValidFrom(valid_from).setValidLength(valid_length)
 
     // Key signing field generation
     if (keypair_path != null) {
@@ -89,11 +93,13 @@ object Generate : CliktCommand() {
       writeSafely("$filename$PUB_KEY_FILE_EXT", keypair.publicKey.asBytes)
     }
 
-    certBuilder.addAllUsages(usages.map { when (it) {
-      "authority" -> Dcrl.CertificateUsage.AUTHORITY
-      "participation" -> Dcrl.CertificateUsage.PARTICIPATION
-      else ->  error("Unknown usage $it") // Should never reach here
-    } })
+    certBuilder.addAllUsages(usages.map {
+      when (it) {
+        "authority" -> Dcrl.CertificateUsage.AUTHORITY
+        "participation" -> Dcrl.CertificateUsage.PARTICIPATION
+        else -> error("Unknown usage $it") // Should never reach here
+      }
+    })
 
     if (issuer_cert != null) {
       val certFile = readFile("$issuer_cert$CERT_FILE_EXT")

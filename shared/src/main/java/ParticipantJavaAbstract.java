@@ -45,7 +45,6 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
 
   /**
    * need to make a block?
-   *
    */
   @Nullable
   @Override
@@ -69,9 +68,9 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
       Dcrl.DCRLMessage messageToSend = Dcrl.DCRLMessage.newBuilder()
           .setSignedMessage(
               Dcrl.SignedMessage.newBuilder()
-                .setCertificate(this.selfCertificate)
-                .setSignature(ByteString.copyFrom(Util.sign(blockMessage, this.selfPrivateKey)))
-                .setBlockMessage(blockMessage)
+                  .setCertificate(this.selfCertificate)
+                  .setSignature(ByteString.copyFrom(Util.sign(blockMessage, this.selfPrivateKey)))
+                  .setBlockMessage(blockMessage)
           )
           .build();
 
@@ -91,11 +90,10 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
    * The incoming message has had its signature verified.
    * 1. Validate the Certificate (same certificate as the one in the SignedMessage)
    * 2. Check the block's height. If this Block's height is greater than 1 plus the height of the
-   *    Participant's last validated Block, then the Participant will need to perform Fork Resolution.
+   * Participant's last validated Block, then the Participant will need to perform Fork Resolution.
    * 3. Compare the previous block's hash with the prev hash reported in this block.
    * 4. Verify the signature of all CertificateRevocations in the block.
    * 5. accept it if we get to this step.
-   *
    */
   @Nullable
   @Override
@@ -105,7 +103,7 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
 
     // validate the block's cert
     Dcrl.Certificate blockCertificate = message.getCertificate();
-    if (! blockCertificate.equals(from)) {
+    if (!blockCertificate.equals(from)) {
       // certs do not match, send signed error
       return ProtocolServerUtil.buildErrorMessage(
           "SignedMessage's Certificate does not match BlockMessage's Certificate.",
@@ -142,8 +140,6 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
   }
 
   /**
-   *
-   *
    * drop message bc we don't use it.
    */
   @Nullable
@@ -154,10 +150,8 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
     return null;
   }
 
-  // TODO we never actually use this method... should we overwrite with return null?
   /**
    * Reply with the block they requested
-   *
    */
   @Nullable
   @Override
@@ -166,32 +160,29 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
         this.blockchain.get((int) message.getHeight()))
         .build();
 
-    Dcrl.DCRLMessage response = Dcrl.DCRLMessage.newBuilder()
+    return Dcrl.DCRLMessage.newBuilder()
         .setSignedMessage(
             Dcrl.SignedMessage.newBuilder()
                 .setCertificate(this.selfCertificate)
                 .setSignature(ByteString.copyFrom(Util.sign(blockResponse, this.selfPrivateKey)))
                 .setBlockResponse(blockResponse))
         .build();
-
-    return response;
   }
 
   /**
    * reply with blockchain
-   *
    */
   @Nullable
   @Override
-  public Dcrl.DCRLMessage handleMessage(@NotNull NetworkIdentity identity,@NotNull Dcrl.BlockchainRequest message) {
+  public Dcrl.DCRLMessage handleMessage(@NotNull NetworkIdentity identity, @NotNull Dcrl.BlockchainRequest message) {
     Dcrl.BlockchainResponse blockchainResponse = Dcrl.BlockchainResponse.newBuilder().addAllBlocks(this.blockchain).build();
 
     Dcrl.DCRLMessage response = Dcrl.DCRLMessage.newBuilder()
         .setSignedMessage(
             Dcrl.SignedMessage.newBuilder()
-            .setCertificate(this.selfCertificate)
-            .setSignature(ByteString.copyFrom(Util.sign(blockchainResponse, this.selfPrivateKey)))
-            .setBlockchainResponse(blockchainResponse))
+                .setCertificate(this.selfCertificate)
+                .setSignature(ByteString.copyFrom(Util.sign(blockchainResponse, this.selfPrivateKey)))
+                .setBlockchainResponse(blockchainResponse))
         .build();
 
     return response;
@@ -199,7 +190,6 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
 
   /**
    * set blockchain if it validates
-   *
    */
   @Nullable
   @Override
@@ -221,7 +211,6 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
 
   /**
    * print error
-   *
    */
   @Nullable
   @Override
@@ -237,13 +226,13 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
     return Dcrl.DCRLMessage.newBuilder()
         .setUnsignedMessage(
             Dcrl.UnsignedMessage.newBuilder()
-              .setBlockchainRequest(Dcrl.BlockchainRequest.getDefaultInstance()))
+                .setBlockchainRequest(Dcrl.BlockchainRequest.getDefaultInstance()))
         .build();
   }
 
   /**
    * checks if the given blockchain is valid
-   *
+   * <p>
    * - blocks must have a valid and trusted certificate
    * - blocks must be hashed in order
    * - blocks must be in increasing order

@@ -34,7 +34,8 @@ message CertificateRevocation {
     Certificate certificate = 1;
 }
 
-message BlockchainRequest {}
+message BlockchainRequest {
+}
 
 message BlockRequest {
     uint64 height = 1;
