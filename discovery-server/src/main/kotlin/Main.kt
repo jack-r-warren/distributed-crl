@@ -47,8 +47,6 @@ object DiscoveryServer : CliktCommand(help = "Run a discovery server to facilita
 
           launch {
 
-            println("Coroutine to handle a new socket")
-
             socket.use { socket ->
               val input = socket.openReadChannel().toInputStream()
               val output = socket.openWriteChannel(autoFlush = true).toOutputStream()
@@ -59,22 +57,16 @@ object DiscoveryServer : CliktCommand(help = "Run a discovery server to facilita
               // code
               val message = Discovery.FromClientMessage.parseDelimitedFrom(input)
 
-              println("Got message: $message")
-
               when (message.messageCase) {
                 // Upon HELLO, respond with any existing servers and add the new one to the set
                 Discovery.FromClientMessage.MessageCase.HELLO -> {
-                  println("Received a message from ${socket.remoteAddress}")
 
                   Discovery.Response.newBuilder().apply {
                     addAllServers(serverSet)
                   }.build().writeDelimitedTo(output)
 
-                  // All protobuf fields optional and will be null if omitted, I'm using this here to let clients
-                  // request servers without adding themselves to the list
-                  @Suppress("UNNECESSARY_SAFE_CALL")
-                  message.hello.port?.let {
-                    serverSet.add(makeServer(remoteIP, it))
+                  message.hello.port.let {
+                    if (it > 0) serverSet.add(makeServer(remoteIP, it))
                   }
                 }
                 // Upon GOODBYE, remove it from the set
