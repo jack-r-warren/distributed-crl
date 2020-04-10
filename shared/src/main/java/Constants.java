@@ -18,6 +18,6 @@ public class Constants {
       .setMerkleRoot(ByteString.copyFrom(GENESIS_BLOCK_MERKLE_ROOT))
       .build();
 
-  public static final byte[] GENESIS_BLOCK_HASH = Util.hash(GENESIS_BLOCK);
+  public static final ByteString GENESIS_BLOCK_HASH = Util.hash(GENESIS_BLOCK);
 
 }

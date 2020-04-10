@@ -33,7 +33,7 @@ object Query : CliktCommand() {
   private val certPath by argument(help = "The path to the cert to check")
   override fun run() {
     val cert = Dcrl.Certificate.parseFrom(readFile(certPath))
-    val hashHexString = Base64.encodeBase64URLSafeString(Util.hashCert(cert))
+    val hashHexString = Base64.encodeBase64URLSafeString(Util.hashCert(cert).toByteArray())
     runBlocking {
       echo(HttpClient().get<String>("http://$serverAddress/check/$hashHexString"))
     }
@@ -104,11 +104,11 @@ object Generate : CliktCommand() {
     if (issuer_cert != null) {
       val certFile = readFile("$issuer_cert$CERT_FILE_EXT")
       val secretKey = readFile("$issuer_cert$SECRET_KEY_FILE_EXT")
-      certBuilder.issuerCertificateHash = ByteString.copyFrom(hash(Certificate.parseFrom(certFile)))
-      certBuilder.issuerSignature = ByteString.copyFrom(signCert(certBuilder, secretKey))
+      certBuilder.issuerCertificateHash = hash(Certificate.parseFrom(certFile))
+      certBuilder.issuerSignature = signCert(certBuilder, secretKey)
     } else {
       val secretKey = readFile("$filename$SECRET_KEY_FILE_EXT")
-      certBuilder.issuerSignature = ByteString.copyFrom(signCert(certBuilder, secretKey))
+      certBuilder.issuerSignature = signCert(certBuilder, secretKey)
     }
 
     val cert = certBuilder.build()

@@ -1,15 +1,16 @@
 import Util.hashCert
+import com.google.protobuf.ByteString
 import com.google.protobuf.Message
 import io.ktor.network.sockets.isClosed
 import org.apache.commons.codec.binary.Base64
 import java.io.File
 
 abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, SocketTuple>, trustStorePath: File) {
-  val trustStore: Map<ByteArray, Dcrl.Certificate> = readTrustStore(trustStorePath).map {
+  val trustStore: Map<ByteString, Dcrl.Certificate> = readTrustStore(trustStorePath).map {
     hashCert(it) to it
   }.toMap()
 
-  protected val currentRevokedList = HashMap<ByteArray, Dcrl.Certificate>()
+  protected val currentRevokedList = HashMap<ByteString, Dcrl.Certificate>()
 
   companion object {
     fun readTrustStore(dir: File): List<Dcrl.Certificate> {
@@ -67,7 +68,7 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
 
   // Assumes the hash is a base64 encoded bytes
   fun checkCertificate(hash: String): CheckResponse {
-    if (currentRevokedList.containsKey(Base64.decodeBase64(hash))) {
+    if (currentRevokedList.containsKey(ByteString.copyFrom(Base64.decodeBase64(hash)))) {
       return CheckResponse.REVOKED
     }
     return CheckResponse.NOT_REVOKED

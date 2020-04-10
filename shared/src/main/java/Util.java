@@ -46,11 +46,11 @@ public class Util {
       HashFunction sha256 = Hashing.sha256();
 
       byte[] rev0_hash = sha256.newHasher()
-          .putBytes(hash(revocations.get(0)))
+          .putBytes(hash(revocations.get(0)).asReadOnlyByteBuffer())
           .hash()
           .asBytes();
       byte[] rev1_hash = sha256.newHasher()
-          .putBytes(hash(revocations.get(1)))
+          .putBytes(hash(revocations.get(1)).asReadOnlyByteBuffer())
           .hash()
           .asBytes();
 
@@ -87,7 +87,7 @@ public class Util {
   }
 
   @NotNull
-  public static byte[] hash(@NotNull GeneratedMessageV3 msg) {
+  public static ByteString hash(@NotNull GeneratedMessageV3 msg) {
     if (msg instanceof Dcrl.CertificateOrBuilder) {
       return hashCert((Dcrl.CertificateOrBuilder) msg);
     }
@@ -100,11 +100,11 @@ public class Util {
 
     byte[] hash = hf.newHasher().putBytes(msg.toByteArray()).hash().asBytes();
 
-    return hash;
+    return ByteString.copyFrom(hash);
   }
 
   @NotNull
-  public static byte[] hashCert(@NotNull Dcrl.CertificateOrBuilder cert) {
+  public static ByteString hashCert(@NotNull Dcrl.CertificateOrBuilder cert) {
     HashFunction hf = Hashing.sha256();
 
     Hasher hasher = hf.newHasher()
@@ -118,26 +118,24 @@ public class Util {
         .putBytes(cert.getIssuerCertificateHash().toByteArray())
         .putBytes(cert.getIssuerSignature().toByteArray());
 
-    return hasher.hash().asBytes();
+    return ByteString.copyFrom(hasher.hash().asBytes());
   }
 
   /*
   Function for hashing a BlockMessage
    */
   @NotNull
-  public static byte[] hashBlock(@NotNull Dcrl.BlockMessageOrBuilder block) {
+  public static ByteString hashBlock(@NotNull Dcrl.BlockMessageOrBuilder block) {
     HashFunction hf = Hashing.sha256();
 
-    byte[] hash = hf.newHasher()
+    return ByteString.copyFrom(hf.newHasher()
         .putBytes(digestForHash(block.getCertificate()))
         .putLong(block.getHeight())
         .putBytes(block.getPreviousBlock().toByteArray())
         .putLong(block.getTimestamp())
         .putBytes(block.getMerkleRoot().toByteArray())
         .hash()
-        .asBytes();
-
-    return hash;
+        .asBytes());
   }
 
   @NotNull
@@ -164,13 +162,13 @@ public class Util {
   If the message is a CertificateOrBuilder, then signs the byte digest
    */
   @NotNull
-  public static byte[] sign(@NotNull GeneratedMessageV3 message,
-                            byte[] private_key) {
+  public static ByteString sign(@NotNull GeneratedMessageV3 message,
+                                byte[] private_key) {
     if (message instanceof Dcrl.CertificateOrBuilder) {
       return signCert((Dcrl.CertificateOrBuilder) message, private_key);
     }
 
-    return CryptoKt.sign(message.toByteArray(), private_key);
+    return ByteString.copyFrom(CryptoKt.sign(message.toByteArray(), private_key));
   }
 
   @NotNull
@@ -242,8 +240,8 @@ public class Util {
   }
 
   @NotNull
-  public static byte[] signCert(@NotNull Dcrl.CertificateOrBuilder cert, @NotNull byte[] private_key) {
-    return CryptoKt.sign(digestForSignature(cert), private_key);
+  public static ByteString signCert(@NotNull Dcrl.CertificateOrBuilder cert, @NotNull byte[] private_key) {
+    return ByteString.copyFrom(CryptoKt.sign(digestForSignature(cert), private_key));
   }
 
 }

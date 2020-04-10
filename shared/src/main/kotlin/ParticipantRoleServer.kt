@@ -22,7 +22,7 @@ open class ParticipantRoleServer(
         }.build().let {
           println("Preparing to announce self")
           announce = it
-          signature = ByteString.copyFrom(Util.sign(it, selfPrivateKey))
+          signature = Util.sign(it, selfPrivateKey)
         }
       }
     }.build().let { message ->
@@ -39,15 +39,22 @@ open class ParticipantRoleServer(
     message: Dcrl.BlockMessage,
     from: Dcrl.Certificate
   ): Dcrl.DCRLMessage? =
-    if (message.certificate.verify(
-        trustStore::get,
-        currentRevokedList::containsKey,
-        Dcrl.CertificateUsage.PARTICIPATION
+    StringBuilder().let { errorCollector ->
+      if (message.certificate.verifyVerbose(
+          { errorCollector.append(it) },
+          trustStore::get,
+          currentRevokedList::containsKey,
+          Dcrl.CertificateUsage.PARTICIPATION
+        )
       )
-    )
-      ProtocolServerUtil.buildErrorMessage("Invalid certificate", selfCertificate, selfPrivateKey)
-    else
-      super.handleMessage(identity, message, from)
+        ProtocolServerUtil.buildErrorMessage(
+          "Invalid certificate for ${message.certificate.subject}: $errorCollector",
+          selfCertificate,
+          selfPrivateKey
+        )
+      else
+        super.handleMessage(identity, message, from)
+    }
 
   override fun handleMessage(
     identity: NetworkIdentity,
@@ -56,6 +63,15 @@ open class ParticipantRoleServer(
   ): Dcrl.DCRLMessage? {
     otherParticipantsAndAuthorities.add(identity)
     println("Hello new participant or authority at $identity")
-    return ProtocolServerUtil.buildErrorMessage("Hi here's an error")
+    return null
+  }
+
+  override fun handleMessage(
+    identity: NetworkIdentity,
+    message: Dcrl.CertificateRevocation,
+    from: Dcrl.Certificate
+  ): Dcrl.DCRLMessage? {
+
+    return super.handleMessage(identity, message, from)
   }
 }

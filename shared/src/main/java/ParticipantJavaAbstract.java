@@ -5,10 +5,9 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
   protected final Dcrl.Certificate selfCertificate;
@@ -17,7 +16,7 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
 
   protected List<Dcrl.CertificateRevocation> revocationsToProcess;
   // inherits this.blockchain
-  protected byte[] lastValidatedHash;
+  protected ByteString lastValidatedHash;
   protected int lastValidatedHeight;
 
   // for block creation
@@ -54,18 +53,21 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
 
     System.out.println("Started");
 
-    if (!CryptoKt.verify(from,
-        ((byte[] bytes) -> getTrustStore().get(bytes)),
-        ((byte[] bytes) -> getCurrentRevokedList().containsKey(bytes)),
+    StringBuilder errorCollector = new StringBuilder();
+    Consumer<String> errorConsumer = errorCollector::append;
+
+    if (!CryptoKt.verifyVerbose(from,
+        errorConsumer,
+        ((ByteString bytes) -> getTrustStore().get(bytes)),
+        ((ByteString bytes) -> getCurrentRevokedList().containsKey(bytes)),
         Dcrl.CertificateUsage.AUTHORITY
     )) {
-      System.out.println("Going to send an error");
-      return ProtocolServerUtil.buildErrorMessage("Bad revocation!", selfCertificate, selfPrivateKey);
+      if (errorCollector.toString().contains("trusted")) getTrustStore().forEach((hash, cert) -> System.out.println(hash));
+      return ProtocolServerUtil.buildErrorMessage("Bad revocation for certificate for " + from.getSubject() + "! " + errorCollector.toString(), selfCertificate, selfPrivateKey);
     }
 
-    if (message.getCertificate().getIssuerCertificateHash().toByteArray() == Util.hash(from))
+    if (message.getCertificate().getIssuerCertificateHash() == Util.hash(from))
     {
-      System.out.println("Going to send an error 2");
       return ProtocolServerUtil.buildErrorMessage("Not from the right person!", selfCertificate, selfPrivateKey);
     }
 
@@ -78,7 +80,7 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
       Dcrl.BlockMessage blockMessage = Dcrl.BlockMessage.newBuilder()
           .setCertificate(this.selfCertificate)
           .setHeight((int) this.lastValidatedHeight + 1)
-          .setPreviousBlock(ByteString.copyFrom(this.lastValidatedHash))
+          .setPreviousBlock(this.lastValidatedHash)
           .setTimestamp(new Date().getTime())
           .setMerkleRoot(ByteString.copyFrom(Util.merkleRoot(this.revocationsToProcess)))
           .addAllCertificateRevocations(this.revocationsToProcess)
@@ -88,7 +90,7 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
           .setSignedMessage(
               Dcrl.SignedMessage.newBuilder()
                   .setCertificate(this.selfCertificate)
-                  .setSignature(ByteString.copyFrom(Util.sign(blockMessage, this.selfPrivateKey)))
+                  .setSignature(Util.sign(blockMessage, this.selfPrivateKey))
                   .setBlockMessage(blockMessage)
           )
           .build();
@@ -146,7 +148,7 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
 
     // now we have message.getHeight() == this.lastValidatedHeight + 1
 
-    if (this.lastValidatedHash != message.getPreviousBlock().toByteArray()) {
+    if (this.lastValidatedHash != message.getPreviousBlock()) {
       // our prev block is the wrong block. need to request new blockchain
       return this.requestNewBlockchain(identity);
     }
@@ -185,7 +187,7 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
         .setSignedMessage(
             Dcrl.SignedMessage.newBuilder()
                 .setCertificate(this.selfCertificate)
-                .setSignature(ByteString.copyFrom(Util.sign(blockResponse, this.selfPrivateKey)))
+                .setSignature(Util.sign(blockResponse, this.selfPrivateKey))
                 .setBlockResponse(blockResponse))
         .build();
   }
@@ -202,7 +204,7 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
         .setSignedMessage(
             Dcrl.SignedMessage.newBuilder()
                 .setCertificate(this.selfCertificate)
-                .setSignature(ByteString.copyFrom(Util.sign(blockchainResponse, this.selfPrivateKey)))
+                .setSignature(Util.sign(blockchainResponse, this.selfPrivateKey))
                 .setBlockchainResponse(blockchainResponse))
         .build();
 
@@ -263,18 +265,21 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
       return false;
     }
 
-    byte[] prevBlockPrevHash = Constants.GENESIS_BLOCK_HASH;
+    ByteString prevBlockPrevHash = Constants.GENESIS_BLOCK_HASH;
     int prevBlockHeight = Constants.GENESIS_BLOCK_HEIGHT;
 
     for (int b = 1; b < chain.size(); b++) {
       Dcrl.BlockMessage block = chain.get(b);
       Dcrl.Certificate blockCert = block.getCertificate();
-      byte[] blockPrevHash = block.getPreviousBlock().toByteArray();
+      ByteString blockPrevHash = block.getPreviousBlock();
       int blockHeight = (int) block.getHeight();
 
-      if (!CryptoKt.verify(blockCert,
-          ((byte[] bytes) -> getTrustStore().get(bytes)),
-          ((byte[] bytes) -> getCurrentRevokedList().containsKey(bytes)),
+
+      Consumer<String> errorPrinter = System.err::println;
+      if (!CryptoKt.verifyVerbose(blockCert,
+          errorPrinter,
+          ((ByteString bytes) -> getTrustStore().get(bytes)),
+          ((ByteString bytes) -> getCurrentRevokedList().containsKey(bytes)),
           Dcrl.CertificateUsage.PARTICIPATION
       )) return false;
 

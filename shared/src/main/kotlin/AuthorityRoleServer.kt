@@ -28,7 +28,7 @@ class AuthorityRoleServer(
                 certificate = cert
               }.build().let {
                 certificateRevocation = it
-                signature = ByteString.copyFrom(Util.sign(it, selfPrivateKey))
+                signature = Util.sign(it, selfPrivateKey)
               }
             }
           }
