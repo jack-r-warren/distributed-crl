@@ -58,6 +58,9 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
         Dcrl.CertificateUsage.AUTHORITY
     )) return ProtocolServerUtil.buildErrorMessage("Bad revocation!", selfCertificate, selfPrivateKey);
 
+    if (message.getCertificate().getIssuerCertificateHash().toByteArray() == Util.hash(from))
+      return ProtocolServerUtil.buildErrorMessage("Not from the right person!", selfCertificate, selfPrivateKey);
+
     this.revocationsToProcess.add(message);
 
     if (this.revocationsToProcess.size() == this.revocationsPerBlock) {
