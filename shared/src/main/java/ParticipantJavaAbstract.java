@@ -38,7 +38,7 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
     this.lastValidatedHash = Constants.GENESIS_BLOCK_HASH;
     this.lastValidatedHeight = Constants.GENESIS_BLOCK_HEIGHT;
 
-    this.revocationsPerBlock = 2;
+    this.revocationsPerBlock = 1;
 
     this.otherParticipantsAndAuthorities = new ArrayList<>(otherServers.keySet());
   }
