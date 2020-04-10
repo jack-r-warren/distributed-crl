@@ -60,10 +60,17 @@ fun <T : ProtocolServer> runProtocolServer(
     val otherServers = aSocket(ActorSelectorManager(Dispatchers.IO))
       .tcp().connect(discoveryServer).use { discoverySocket ->
         // Tell the server about us (if we should)
-        when (becomeDiscoverable) {
-          true -> Discovery.Hello.newBuilder().apply { this.port = serverSocketPort }.build()
-          false -> Discovery.Hello.getDefaultInstance()
-        }.writeTo(discoverySocket.openWriteChannel(true).toOutputStream())
+
+        println("About to send to discovery")
+
+        Discovery.FromClientMessage.newBuilder().apply {
+          hello = when (becomeDiscoverable) {
+            true -> Discovery.Hello.newBuilder().apply { this.port = serverSocketPort }.build()
+            false -> Discovery.Hello.getDefaultInstance()
+          }
+        }.build().writeTo(discoverySocket.openWriteChannel(true).toOutputStream())
+
+        println("Sent to server")
 
         // Parse the server's response
         Discovery.Response.parseDelimitedFrom(discoverySocket.openReadChannel().toInputStream()).serversList.map {

@@ -26,7 +26,7 @@ subprojects {
 
 // For all application (i.e. executable) subprojects, configure:
 configure(subprojects.findAll {
-    ['client', 'intermediary', 'certificate-authority', 'discovery-server', 'generator', 'demo'].contains(it.name)
+    ['client', 'intermediary', 'certificate-authority', 'discovery-server', 'demo'].contains(it.name)
 }) {
     def projectName = it.name
     apply plugin: 'application'
@@ -60,7 +60,7 @@ configure(subprojects.findAll {
 
 // For all Kotlin subprojects, configure:
 configure(subprojects.findAll {
-    ['shared', 'client', 'intermediary', 'certificate-authority', 'discovery-server', 'generator', 'demo'].contains(it.name)
+    ['shared', 'client', 'intermediary', 'certificate-authority', 'discovery-server', 'demo'].contains(it.name)
 }) {
     apply plugin: 'org.jetbrains.kotlin.jvm'
 

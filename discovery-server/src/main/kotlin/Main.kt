@@ -46,6 +46,9 @@ object DiscoveryServer : CliktCommand(help = "Run a discovery server to facilita
           val socket = serverSocket.accept()
 
           launch {
+
+            println("Coroutine to handle a new socket")
+
             socket.use { socket ->
               val input = socket.openReadChannel().toInputStream()
               val output = socket.openWriteChannel(autoFlush = true).toOutputStream()
@@ -55,6 +58,8 @@ object DiscoveryServer : CliktCommand(help = "Run a discovery server to facilita
               // before every message, except it is more efficient and it is built-in to Java's protobuf
               // code
               val message = Discovery.FromClientMessage.parseDelimitedFrom(input)
+
+              println("Got message: $message")
 
               when (message.messageCase) {
                 // Upon HELLO, respond with any existing servers and add the new one to the set
