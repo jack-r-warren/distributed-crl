@@ -52,6 +52,12 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
                                         @NotNull Dcrl.CertificateRevocation message,
                                         @NotNull Dcrl.Certificate from) {
 
+    if (!CryptoKt.verify(from,
+        ((byte[] bytes) -> getTrustStore().get(bytes)),
+        ((byte[] bytes) -> getCurrentRevokedList().containsKey(bytes)),
+        Dcrl.CertificateUsage.AUTHORITY
+    )) return ProtocolServerUtil.buildErrorMessage("Bad revocation!", selfCertificate, selfPrivateKey);
+
     this.revocationsToProcess.add(message);
 
     if (this.revocationsToProcess.size() == this.revocationsPerBlock) {
@@ -237,7 +243,6 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
    * - blocks must be hashed in order
    * - blocks must be in increasing order
    */
-  @NotNull
   private boolean validateBlockchain(List<Dcrl.BlockMessage> chain) {
     if (chain.size() == 0) {
       return false;
@@ -252,8 +257,11 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
       byte[] blockPrevHash = block.getPreviousBlock().toByteArray();
       int blockHeight = (int) block.getHeight();
 
-      // TODO validate cert
-      // TODO check cert is trusted
+      if (!CryptoKt.verify(blockCert,
+          ((byte[] bytes) -> getTrustStore().get(bytes)),
+          ((byte[] bytes) -> getCurrentRevokedList().containsKey(bytes)),
+          Dcrl.CertificateUsage.PARTICIPATION
+      )) return false;
 
       if (prevBlockPrevHash != blockPrevHash) {
         return false;

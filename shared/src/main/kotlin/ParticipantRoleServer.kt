@@ -34,7 +34,12 @@ open class ParticipantRoleServer(
     message: Dcrl.BlockMessage,
     from: Dcrl.Certificate
   ): Dcrl.DCRLMessage? =
-    if (message.certificate.verifySignature(trustStore::get))
+    if (message.certificate.verify(
+        trustStore::get,
+        currentRevokedList::containsKey,
+        Dcrl.CertificateUsage.PARTICIPATION
+      )
+    )
       ProtocolServerUtil.buildErrorMessage("Invalid certificate", selfCertificate, selfPrivateKey)
     else
       super.handleMessage(identity, message, from)
