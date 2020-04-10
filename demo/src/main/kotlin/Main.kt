@@ -35,7 +35,7 @@ object Query : CliktCommand() {
     val cert = Dcrl.Certificate.parseFrom(readFile(certPath))
     val hashHexString = Base64().encode(Util.hashCert(cert))
     runBlocking {
-      echo(HttpClient().get("http://$serverAddress/check/$hashHexString"))
+      echo(HttpClient().get<String>("http://$serverAddress/check/$hashHexString"))
     }
   }
 
@@ -146,7 +146,7 @@ object Revoke : CliktCommand() {
   override fun run() {
     val fileHashString = Base64().encodeAsString(readFile(certPath))
     runBlocking {
-      echo(HttpClient().get("http://$serverAddress/revoke/$fileHashString"))
+      echo(HttpClient().get<String>("http://$serverAddress/revoke/$fileHashString"))
     }
   }
 
