@@ -8,6 +8,7 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
+import kotlinx.coroutines.launch
 
 fun main(args: Array<String>) = ClientMain.main(args)
 
@@ -35,7 +36,11 @@ object ClientMain : CommandLineBase() {
         get("/check/{hash}") {
           call.parameters["hash"].let {
             if (it != null && it.isNotEmpty()) {
-              call.respondText(ContentType.Text.Html) { server.checkCertificate(it).name }
+              server.uponReceivingBlockchain = Runnable { launch {
+                call.respondText(ContentType.Text.Html) { server.checkCertificate(it).name }
+              } }
+              server.requestBlockchain()
+
             }
             else
               call.respondText("No certificate hash given as a parameter", ContentType.Text.Html)

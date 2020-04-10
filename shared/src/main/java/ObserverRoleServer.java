@@ -20,6 +20,7 @@ public class ObserverRoleServer extends ProtocolServer {
   List<NetworkIdentity> preferenceList;
   List<Dcrl.BlockMessage> blockchain;
   long timestamp;
+  Runnable uponReceivingBlockchain = null;
 
 
   public ObserverRoleServer(@NotNull Map<NetworkIdentity, SocketTuple> otherServers,
@@ -99,6 +100,8 @@ public class ObserverRoleServer extends ProtocolServer {
       this.blockchain = response;
       processBlockchain();
       this.timestamp = (new Date()).getTime();
+      if (uponReceivingBlockchain != null) uponReceivingBlockchain.run();
+      uponReceivingBlockchain = null;
       return null;
     }
   }
