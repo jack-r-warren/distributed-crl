@@ -53,6 +53,6 @@ Go to /revoke/{cert} to revoke a certificate
           }
         }
       }
-    }.start(wait = true)
+    }.start()
   }
 }

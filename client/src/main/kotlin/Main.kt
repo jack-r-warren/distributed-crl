@@ -40,6 +40,6 @@ object ClientMain : CommandLineBase() {
           }
         }
       }
-    }.start(wait = true)
+    }.start()
   }
 }
