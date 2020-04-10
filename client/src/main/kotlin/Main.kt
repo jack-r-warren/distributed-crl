@@ -8,6 +8,9 @@ import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
+import kotlinx.coroutines.time.delay
+import kotlin.time.seconds
+import kotlin.time.toJavaDuration
 
 fun main(args: Array<String>) = ClientMain.main(args)
 
@@ -35,6 +38,8 @@ object ClientMain : CommandLineBase() {
         get("/check/{hash}") {
           call.parameters["hash"].let {
             if (it != null && it.isNotEmpty()) {
+              server.requestBlockchain()
+              while (server.waitingForBlockchainUpdate) delay(0.25.seconds.toJavaDuration())
               call.respondText(ContentType.Text.Html) { server.checkCertificate(it).name }
             }
             else

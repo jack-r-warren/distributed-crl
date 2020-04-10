@@ -20,6 +20,7 @@ public class ObserverRoleServer extends ProtocolServer {
   List<NetworkIdentity> preferenceList;
   List<Dcrl.BlockMessage> blockchain;
   long timestamp;
+  boolean waitingForBlockchainUpdate = false;
 
 
   public ObserverRoleServer(@NotNull Map<NetworkIdentity, SocketTuple> otherServers,
@@ -50,6 +51,7 @@ public class ObserverRoleServer extends ProtocolServer {
    */
   public void requestBlockchain(NetworkIdentity server) {
     // build the request
+    waitingForBlockchainUpdate = true;
     System.out.println("Sending request to " + server.getIpAddress() + ":" + server.getPortNumber());
     Dcrl.DCRLMessage request = Dcrl.DCRLMessage.newBuilder()
         .setUnsignedMessage(
@@ -94,11 +96,13 @@ public class ObserverRoleServer extends ProtocolServer {
 
     // error checking before updating this.blockchain
     if (response.isEmpty()) {
+      waitingForBlockchainUpdate = false;
       return ProtocolServerUtil.buildErrorMessage("Empty blockchain.");
     } else {
       this.blockchain = response;
       processBlockchain();
       this.timestamp = (new Date()).getTime();
+      waitingForBlockchainUpdate = false;
       return null;
     }
   }
