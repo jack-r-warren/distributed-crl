@@ -28,6 +28,7 @@ subprojects {
 configure(subprojects.findAll {
     ['client', 'intermediary', 'certificate-authority', 'discovery-server', 'generator', 'demo'].contains(it.name)
 }) {
+    def projectName = it.name
     apply plugin: 'application'
     apply plugin: 'com.github.johnrengelman.shadow'
 
@@ -43,6 +44,17 @@ configure(subprojects.findAll {
         // File will be in <subproject>/build/libs/<subproject>.jar
         archiveClassifier.set ''
         archiveVersion.set ''
+    }
+
+    task copyJar {
+        dependsOn ":${projectName}:shadowJar"
+        doLast {
+            mkdir "../build/jars"
+            copy {
+                from "build/libs/${projectName}.jar"
+                into "../build/jars"
+            }
+        }
     }
 }
 
