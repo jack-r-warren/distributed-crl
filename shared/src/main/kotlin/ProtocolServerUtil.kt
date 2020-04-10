@@ -109,7 +109,7 @@ fun <T : ProtocolServer> runProtocolServer(
             SocketTuple(serverSocket.accept()).let { socket ->
               NetworkIdentity.from(socket).let { identity ->
                 protocolServer.otherServers[identity] = socket
-                launch { protocolServer.babysitSocket(identity, socket) }
+                launch(Dispatchers.IO) { protocolServer.babysitSocket(identity, socket) }
                 println("Accepted a connection from $identity")
               }
             }
