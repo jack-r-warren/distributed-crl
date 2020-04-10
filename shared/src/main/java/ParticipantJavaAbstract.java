@@ -78,7 +78,10 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
       this.lastValidatedHeight += 1;
       this.lastValidatedHash = Util.sign(blockMessage, this.selfPrivateKey);
 
-      return messageToSend;
+      // need to flood messageToSend
+      for (NetworkIdentity server : this.otherParticipantsAndAuthorities) {
+        sendMessageToIdentity(server, messageToSend);
+      }
     }
     return null;
   }
