@@ -56,7 +56,11 @@ abstract class ProtocolServer(val otherServers: MutableMap<NetworkIdentity, Sock
     try {
       // Receive messages and send any non-null outputs of the handleMessage function
       while (true) {
-        println("There's something in the socket!")
+        println("Waiting for stuff in the socket!")
+        while (socket.inputStream.available() == 0) {
+          runBlocking { delay(100) }
+        }
+        println("somethings in the socket!")
         handleMessage(
           identity,
           Dcrl.DCRLMessage.parseDelimitedFrom(socket.inputStream).also { println("Received $it from ${socket.remoteAddress}") }
