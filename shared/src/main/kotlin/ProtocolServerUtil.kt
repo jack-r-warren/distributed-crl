@@ -29,7 +29,7 @@ abstract class SignerCommandLineBase : CommandLineBase() {
   protected val selfCertificate: File by option("--certificate", "--cert", "-c")
     .file(fileOkay = true, folderOkay = false, exists = true, readable = true)
     .required()
-  protected val selfPrivateKey: File by option("--key", "-key")
+  protected val selfPrivateKey: File by option("--key", "-k")
     .file(fileOkay = true, folderOkay = false, exists = true, readable = true)
     .required()
 }
