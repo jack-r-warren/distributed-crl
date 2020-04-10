@@ -1,3 +1,5 @@
+import Util.sign
+import com.google.protobuf.ByteString
 import org.apache.commons.codec.binary.Base64
 import java.io.File
 
@@ -9,11 +11,28 @@ class AuthorityRoleServer(
 ) :
   ParticipantRoleServer(otherServers, trustStore, selfCertificate, selfPrivateKey) {
 
-  fun revokeCertificate(hash: String): RevocationResponse {
-    Base64.decodeBase64(hash).let { hashBytes ->
-      return RevocationResponse.REVOCATION_REJECTED
-      TODO("Actually do the revoking")
-    }
+  fun revokeCertificate(encodedCert: String): RevocationResponse {
+    Base64.decodeBase64(encodedCert)
+      .let { certBytes ->
+        try {
+          Dcrl.Certificate.parseFrom(certBytes)
+        } catch (e: Exception) {
+          return RevocationResponse.REVOCATION_REJECTED
+        }
+      }.let { cert ->
+        Dcrl.CertificateRevocation.newBuilder().setCertificate(cert).build()
+      }.let { revokeMsg ->
+        val builder = Dcrl.SignedMessage.newBuilder().setCertificate(selfCertificate).setCertificateRevocation(revokeMsg)
+
+        builder.signature = ByteString.copyFrom(sign(builder.build(), selfPrivateKey))
+        builder.build()
+      }.let { signedMsg ->
+        this.otherServers.values.forEach { tuple: SocketTuple ->
+          tuple.outputStream.write(signedMsg.toByteArray())
+        }
+      }
+
+    return RevocationResponse.REVOCATION_STARTED
   }
 
   enum class RevocationResponse {
