@@ -194,15 +194,6 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
     return response;
   }
 
-  @Nullable
-  @Override
-  public Dcrl.DCRLMessage handleMessage(@NotNull NetworkIdentity identity,
-                                        @NotNull Dcrl.Announce message,
-                                        @NotNull Dcrl.Certificate from) {
-    // TODO not sure what to do?
-    return super.handleMessage(identity, message, from);
-  }
-
   /**
    * set blockchain if it validates
    *
