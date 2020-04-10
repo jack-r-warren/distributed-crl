@@ -13,6 +13,7 @@ import java.util.Map;
 abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
   protected final Dcrl.Certificate selfCertificate;
   protected final byte[] selfPrivateKey;
+  protected final List<NetworkIdentity> otherParticipantsAndAuthorities;
 
   protected List<Dcrl.CertificateRevocation> revocationsToProcess;
   // inherits this.blockchain
@@ -37,6 +38,8 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
     this.lastValidatedHeight = Constants.GENESIS_BLOCK_HEIGHT;
 
     this.revocationsPerBlock = 4;
+
+    this.otherParticipantsAndAuthorities = new ArrayList<>(otherServers.keySet());
   }
 
 
@@ -99,8 +102,6 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
 
     // validate the block's cert
     Dcrl.Certificate blockCertificate = message.getCertificate();
-    // TODO verify the cert's signature
-    // TODO check that cert is trusted
     if (! blockCertificate.equals(from)) {
       // certs do not match, send signed error
       return ProtocolServerUtil.buildErrorMessage(
