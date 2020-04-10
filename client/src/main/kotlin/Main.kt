@@ -6,8 +6,8 @@ import io.ktor.http.ContentType
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
+import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
 
 fun main(args: Array<String>) = ClientMain.main(args)
 
@@ -26,7 +26,8 @@ object ClientMain : CommandLineBase() {
 
   private fun runWebInterface(server: ObserverRoleServer): Unit {
     println("Running web server")
-    embeddedServer(Netty, webPort) {
+
+    embeddedServer(CIO, webPort) {
       routing {
         get("/") {
           call.respondText("Go to /check/{hash} to check the validity of a certificate", ContentType.Text.Html)
@@ -34,7 +35,6 @@ object ClientMain : CommandLineBase() {
         get("/check/{hash}") {
           call.parameters["hash"].let {
             if (it != null && it.isNotEmpty()) {
-              server.requestBlockchain()
               call.respondText(ContentType.Text.Html) { server.checkCertificate(it).name }
             }
             else

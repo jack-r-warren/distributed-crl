@@ -6,8 +6,8 @@ import io.ktor.http.ContentType
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
+import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
 import java.io.File
 
 fun main(args: Array<String>) = ClientMain.main(args)
@@ -26,7 +26,7 @@ object ClientMain : SignerCommandLineBase() {
 
   private fun runWebInterface(server: AuthorityRoleServer): Unit {
     println("Running web server")
-    embeddedServer(Netty, webPort) {
+    embeddedServer(CIO, webPort) {
       routing {
         get("/") {
           call.respondText(

@@ -88,7 +88,7 @@ fun <T : ProtocolServer> runProtocolServer(
       protocolServerFactory(otherServers, trustStoreDirectory).let { protocolServer: T ->
         // For every server we know about, initiate a socket
         protocolServer.otherServers.forEach { (identity, socket) ->
-          launch {
+          launch(Dispatchers.IO) {
             protocolServer.babysitSocket(
               identity,
               socket
@@ -97,10 +97,10 @@ fun <T : ProtocolServer> runProtocolServer(
         }
         println("Connected to existing other servers")
 
-        launch { protocolServer.callbackUponConfigured() }
+        launch(Dispatchers.IO) { protocolServer.callbackUponConfigured() }
 
         if (callbackWithConfiguredServer != null) {
-          launch { callbackWithConfiguredServer(protocolServer) }
+          launch(Dispatchers.IO) { callbackWithConfiguredServer(protocolServer) }
         }
 
         // Listen for any future connections, accept each as a socket
