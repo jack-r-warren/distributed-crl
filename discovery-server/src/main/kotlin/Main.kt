@@ -59,6 +59,8 @@ object DiscoveryServer : CliktCommand(help = "Run a discovery server to facilita
               when (message.messageCase) {
                 // Upon HELLO, respond with any existing servers and add the new one to the set
                 Discovery.FromClientMessage.MessageCase.HELLO -> {
+                  println("Received a message from ${socket.remoteAddress}")
+
                   Discovery.Response.newBuilder().apply {
                     addAllServers(serverSet)
                   }.build().writeDelimitedTo(output)
