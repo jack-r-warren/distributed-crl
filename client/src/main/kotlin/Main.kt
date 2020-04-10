@@ -31,9 +31,12 @@ object ClientMain : CommandLineBase() {
           call.respondText("Go to /check/{hash} to check the validity of a certificate", ContentType.Text.Html)
         }
         get("/check/{hash}") {
-          call.parameters["hash"]?.let {
-            call.respondText(ContentType.Text.Html) { server.checkCertificate(it).name }
-          } ?: call.respondText("No certificate hash given as a parameter", ContentType.Text.Html)
+          call.parameters["hash"].let {
+            if (it != null && it.isNotEmpty())
+              call.respondText(ContentType.Text.Html) { server.checkCertificate(it).name }
+            else
+              call.respondText("No certificate hash given as a parameter", ContentType.Text.Html)
+          }
         }
       }
     }.start(wait = true)

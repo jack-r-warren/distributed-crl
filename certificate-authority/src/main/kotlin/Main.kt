@@ -37,14 +37,20 @@ Go to /revoke/{cert} to revoke a certificate
           )
         }
         get("/check/{hash}") {
-          call.parameters["hash"]?.let {
-            call.respondText(ContentType.Text.Html) { server.checkCertificate(it).name }
-          } ?: call.respondText("No certificate hash given as a parameter", ContentType.Text.Html)
+          call.parameters["hash"].let {
+            if (it != null && it.isNotEmpty())
+              call.respondText(ContentType.Text.Html) { server.checkCertificate(it).name }
+            else
+              call.respondText("No certificate hash given as a parameter", ContentType.Text.Html)
+          }
         }
         get("/revoke/{cert}") {
-          call.parameters["cert"]?.let {
-            call.respondText(ContentType.Text.Html) { server.revokeCertificate(it).name }
-          } ?: call.respondText("No base64-encoded certificate given as a parameter", ContentType.Text.Html)
+          call.parameters["hash"].let {
+            if (it != null && it.isNotEmpty())
+              call.respondText(ContentType.Text.Html) { server.revokeCertificate(it).name }
+            else
+              call.respondText("No certificate hash given as a parameter", ContentType.Text.Html)
+          }
         }
       }
     }.start(wait = true)
