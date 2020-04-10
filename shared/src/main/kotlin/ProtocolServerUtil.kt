@@ -87,12 +87,22 @@ fun <T : ProtocolServer> runProtocolServer(
     try {
       protocolServerFactory(otherServers, trustStoreDirectory).let { protocolServer: T ->
         // For every server we know about, initiate a socket
-        for ((identity, socket) in protocolServer.otherServers)
-          launch { protocolServer.babysitSocket(identity, socket) }
+        protocolServer.otherServers.forEach { (identity, socket) ->
+          launch {
+            protocolServer.babysitSocket(
+              identity,
+              socket
+            )
+          }
+        }
         println("Connected to existing other servers")
 
         callbackWithConfiguredServer?.let {
-          launch { it.invoke(protocolServer) }
+          try {
+            launch { it.invoke(protocolServer) }
+          } catch (e: Throwable) {
+            println("Callback ended with exception $e")
+          }
           println("Launched callback")
         }
 

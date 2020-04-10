@@ -4,7 +4,6 @@ object ClientMain : SignerCommandLineBase() {
 
   override fun run() = runProtocolServer(
     discoveryServer = discoveryNetworkIdentity,
-    becomeDiscoverable = false,
     trustStoreDirectory = trustStoreDirectory,
     // Method reference syntax, used here to reference a constructor
     protocolServerFactory = { otherServers, trustStore ->

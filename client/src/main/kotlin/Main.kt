@@ -25,6 +25,7 @@ object ClientMain : CommandLineBase() {
   )
 
   private fun runWebInterface(server: ObserverRoleServer): Unit {
+    println("Running web server")
     embeddedServer(Netty, webPort) {
       routing {
         get("/") {

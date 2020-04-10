@@ -16,7 +16,6 @@ object ClientMain : SignerCommandLineBase() {
 
   override fun run() = runProtocolServer(
     discoveryServer = discoveryNetworkIdentity,
-    becomeDiscoverable = false,
     trustStoreDirectory = trustStoreDirectory,
     // Method reference syntax, used here to reference a constructor
     protocolServerFactory = { otherServers, trustStore ->
@@ -25,13 +24,14 @@ object ClientMain : SignerCommandLineBase() {
     callbackWithConfiguredServer = ::runWebInterface
   )
 
-  private fun runWebInterface(server: AuthorityRoleServer) {
+  private fun runWebInterface(server: AuthorityRoleServer): Unit {
+    println("Running web server")
     embeddedServer(Netty, webPort) {
       routing {
         get("/") {
           call.respondText(
             """
-Go to /check/{hash} to check the validity of a certificate
+Go to /check/{hash} to check the validity of a certificate\n
 Go to /revoke/{cert} to revoke a certificate
           """.trimIndent(), ContentType.Text.Html
           )
