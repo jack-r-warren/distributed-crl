@@ -37,7 +37,7 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
     this.lastValidatedHash = Constants.GENESIS_BLOCK_HASH;
     this.lastValidatedHeight = Constants.GENESIS_BLOCK_HEIGHT;
 
-    this.revocationsPerBlock = 4;
+    this.revocationsPerBlock = 1;
 
     this.otherParticipantsAndAuthorities = new ArrayList<>(otherServers.keySet());
   }
@@ -62,8 +62,10 @@ abstract public class ParticipantJavaAbstract extends ObserverRoleServer {
       return ProtocolServerUtil.buildErrorMessage("Not from the right person!", selfCertificate, selfPrivateKey);
 
     this.revocationsToProcess.add(message);
+    System.out.println("Added revocation, now storing " + this.revocationsToProcess.size());
 
     if (this.revocationsToProcess.size() == this.revocationsPerBlock) {
+      System.out.println("Reached amount");
 
       Dcrl.BlockMessage blockMessage = Dcrl.BlockMessage.newBuilder()
           .setCertificate(this.selfCertificate)

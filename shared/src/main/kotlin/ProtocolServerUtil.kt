@@ -99,14 +99,22 @@ fun <T : ProtocolServer> runProtocolServer(
 
         launch { protocolServer.callbackUponConfigured() }
 
-        if (callbackWithConfiguredServer != null) launch { callbackWithConfiguredServer(protocolServer) }
+        if (callbackWithConfiguredServer != null) {
+          launch { callbackWithConfiguredServer(protocolServer) }
+        }
 
         // Listen for any future connections, accept each as a socket
-        while (true) SocketTuple(serverSocket.accept()).let { socket ->
-          NetworkIdentity.from(socket).let { identity ->
-            protocolServer.otherServers[identity] = socket
-            launch { protocolServer.babysitSocket(identity, socket) }
-            println("Accepted a connection from $identity")
+        while (true) {
+          try {
+            SocketTuple(serverSocket.accept()).let { socket ->
+              NetworkIdentity.from(socket).let { identity ->
+                protocolServer.otherServers[identity] = socket
+                launch { protocolServer.babysitSocket(identity, socket) }
+                println("Accepted a connection from $identity")
+              }
+            }
+          } catch (e: Throwable) {
+            println(e)
           }
         }
       }
